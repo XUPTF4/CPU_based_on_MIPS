@@ -13,7 +13,7 @@ module RegFile (
         input wire [4:0] regbAddr,    // 读端口 B 地址
         input wire  regbRd,        // 读使能
 
-        // from EXU
+        // from WBU
         input wire we,                // 写使能
         input wire [4:0] wAddr,       // 写地址
         input wire [31:0] wData      // 写数据

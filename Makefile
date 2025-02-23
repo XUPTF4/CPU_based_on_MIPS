@@ -26,3 +26,13 @@ clean:
 	@rm -rf $(OBJ_DIR)
 
 .PHONY: simu build run
+
+
+
+# MIPS_GCC = mips-linux-gnu-gcc
+
+# test
+
+# test:
+
+

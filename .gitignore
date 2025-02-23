@@ -2,5 +2,5 @@
 compile_commands.json
 .cache
 wave.vcd
-# obj_dir
+obj_dir
 test_bench/cpu_test/build

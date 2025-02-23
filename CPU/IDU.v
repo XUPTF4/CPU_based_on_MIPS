@@ -4,7 +4,7 @@
 
 module IDU (
 
-        input wire rst,               // 复位信号
+        // input wire rst,               // 复位信号
         input wire [31:0] pc,
         input wire [31:0] inst,             // 输入指令
         input wire [31:0] regaData_i,       // 寄存器 A 数据
@@ -12,7 +12,7 @@ module IDU (
 
         output reg [31:0] regaData,        // 操作数 a
         output reg [31:0] regbData,        // 操作数 b, 为了利用 case 语法特性，这里使用 reg
-        
+
         // 跳转使能由 IDU 生成，跳转地址由 EXU 生成
         output reg jCe,                             // 跳转使能
 
@@ -26,14 +26,14 @@ module IDU (
         output reg [5:0] EXE_FUNC,   // ALU 功能
         output reg [0:0] W_MEM_EN,     // 内存写使能
         output reg [0:0] R_MEM_EN,     // 内存读使能
-        output reg [1:0] W_MASK,     // w_mask
-        output reg [1:0] R_MASK,     // r_mask
-        output reg [0:0] W_TYPE,     // 写入数据类型
+        output reg [3:0] W_MASK,     // w_mask
+        output reg [3:0] R_MASK,     // r_mask
         output reg [0:0] REG_EN,     // 寄存器写使能
         output reg [1:0] WB_SEL,     // WB 数据来源
-        output reg [4:0] Reg_Target     // WB 数据地址
+        output reg [4:0] Reg_Target,     // WB 数据地址
         // output reg  regcWr_i,              // 写使能信号
         // output reg [4:0] regcAddr_i,       // 目标寄存器地址
+        output reg [31:0] rt_data_o // load 指令写入的地址，for WBU
 
     );
     // 提取指令字段
@@ -66,6 +66,8 @@ module IDU (
     // RegFile 地址
     assign regaAddr = rs_addr;
     assign regbAddr = rt_addr;
+    // LOAD 地址
+    assign rt_data_o = regbData_i; // rt 中的数据需要传到 mem，对于 Store
 
 
     // 解析信号
@@ -102,7 +104,6 @@ module IDU (
         is_jal = 1'b0;
 
         casez (inst[31:0])
-            // R-type instructions (funct = 000000)
             32'b000000_?????_?????_?????_00000_??????: begin
                 Reg_Target = rd_addr;
                 if (inst[5:0] == FUNCT_ADD) begin
@@ -208,7 +209,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
                 Reg_Target = rd_addr;
 
             end
@@ -222,7 +223,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_and: begin
@@ -235,7 +236,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_or: begin
@@ -248,7 +249,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_xor: begin
@@ -261,7 +262,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_sll: begin
@@ -274,7 +275,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_srl: begin
@@ -287,7 +288,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_sra: begin
@@ -300,7 +301,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
             end
 
             is_addi: begin
@@ -313,7 +314,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
             end
             is_andi: begin
                 EXE_FUNC = ALU_AND;
@@ -325,7 +326,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
             end
             is_ori: begin
                 EXE_FUNC = ALU_OR;
@@ -337,7 +338,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
             end
             is_xori: begin
                 EXE_FUNC = ALU_XOR;
@@ -349,7 +350,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
             end
             is_lw: begin
                 EXE_FUNC = ALU_LW;
@@ -361,7 +362,6 @@ module IDU (
                 WB_SEL = WB_MEM; // 读取内存，写入 rd
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_C; // 读取 4 字节
-                W_TYPE = WTYPE_U; // 数据符号，默认为无符号型
             end
             is_sw: begin
                 EXE_FUNC = ALU_SW;
@@ -373,7 +373,6 @@ module IDU (
                 WB_SEL = WB_X;
                 W_MASK = WMASK_C; // 存入 4 字节
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X; // 数据符号，默认为无符号型
             end
             // 这里比较复杂
             is_beq: begin
@@ -386,7 +385,7 @@ module IDU (
                 WB_SEL = WB_X;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_bne: begin
@@ -399,7 +398,7 @@ module IDU (
                 WB_SEL = WB_X;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
             is_lui: begin
@@ -412,7 +411,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
             end
             is_j: begin
                 EXE_FUNC = ALU_J;
@@ -424,7 +423,7 @@ module IDU (
                 WB_SEL = WB_X;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
 
@@ -439,7 +438,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
 
@@ -453,7 +452,7 @@ module IDU (
                 WB_SEL = WB_ALU;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
 
             end
 
@@ -467,7 +466,7 @@ module IDU (
                 WB_SEL = WB_X;
                 W_MASK = WMASK_X;
                 R_MASK = RMASK_X;
-                W_TYPE = WTYPE_X;
+
             end
         endcase
     end

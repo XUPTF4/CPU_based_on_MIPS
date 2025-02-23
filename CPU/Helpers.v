@@ -75,15 +75,15 @@ parameter WMEN_S = 1'b1;
 parameter RMEN_X = 1'b0;
 parameter RMEN_S = 1'b1;
 
-parameter WMASK_X = 2'b00;
-parameter WMASK_A = 2'b01; // 1 字节
-parameter WMASK_B = 2'b10; // 2 字节
-parameter WMASK_C = 2'b11; // 4 字节
+parameter WMASK_X = 4'b0000;
+parameter WMASK_A = 4'b0001; // 1 字节
+parameter WMASK_B = 4'b0011; // 2 字节
+parameter WMASK_C = 4'b1111; // 4 字节
 
-parameter RMASK_X = 2'b00;
-parameter RMASK_A = 2'b01;
-parameter RMASK_B = 2'b10;
-parameter RMASK_C = 2'b11;
+parameter RMASK_X = 4'b0000;
+parameter RMASK_A = 4'b0001;
+parameter RMASK_B = 4'b0011;
+parameter RMASK_C = 4'b1111;
 
 parameter WTYPE_X = 1'b0;
 parameter WTYPE_S = 1'b1;

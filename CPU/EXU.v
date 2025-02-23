@@ -1,21 +1,15 @@
 // 运算单元
 // 这里主要实现 ALU
-// 发出跳转信号：跳转信号的生成需要 ALU，放在 IDU 是不合理的
-
+// 发出跳转信号：跳转地址信号的生成需要 ALU，放在 IDU 是不合理的
 `include "Helpers.v"  // 包含 constants.v 文件
 module EXU (
-        input wire [31:0] regaData_i,         // 源 A 数据
-        input wire [31:0] regbData_i,         // 源 B 数据
-        // input wire  regcWr_i,               // 写使能
-        // input wire [4:0] regcAddr_i,        // 寄存器写地址
-
+        input wire rst,               // 复位信号
         // for reg
         output reg [31:0] regcData,         // 寄存器写数据
         output wire [4:0] regcAddr,         // 寄存器写地址
         output wire regcWr,                   // 寄存器写使能
-        output wire [1:0] WB_SEL,      // WB 数据来源 (输入信号)
-        output wire [0:0] REG_EN,      // 寄存器写使能 (输入信号)
 
+        // 跳转地址的生成
         output reg [31:0] jAddr, 	        // 跳转地址
 
         // for mem
@@ -28,88 +22,97 @@ module EXU (
 
 
         // 来自上游的信号
-        input wire [5:0] EXE_FUNC_i,    // ALU 功能 (输入信号)
-        input wire [0:0] W_MEM_EN_i,      // 内存写使能 (输入信号)
-        input wire [0:0] R_MEM_EN_i,      // 内存读使能 (输入信号)
-        input wire [3:0] W_MASK_i,      // w_mask (输入信号)
-        input wire [3:0] R_MASK_i,      // r_mask (输入信号)
-        input wire [0:0] REG_EN_i,      // 寄存器写使能 (输入信号)
-        input wire [1:0] WB_SEL_i,      // WB 数据来源 (输入信号)
-        input wire [4:0] Reg_Target_i,     // WB 数据地址
-        input wire [31:0] rt_data_o     // store 指令写入的数据，for MEM
+        input wire [5:0] op_i,    // ALU 功能 (输入信号)
+        input wire [0:0] memWr_i,      // 内存写使能 (输入信号)
+        input wire [0:0] memRr_i,      // 内存读使能 (输入信号)
+        input wire [3:0] w_mask_i,      // w_mask (输入信号)
+        input wire [3:0] r_mask_i,      // r_mask (输入信号)
+
+        input wire [31:0] regaData_i,         // 源 A 数据
+        input wire [31:0] regbData_i,         // 源 B 数据
+        input wire [0:0] regcWr_i,      // 寄存器写使能 (输入信号)
+        input wire [4:0] regcAddr_i,     // WB 数据地址
+        input wire [31:0] rt_data_i     // store 指令写入的数据，for MEM
     );
 
     // WB
     assign regcData = alu_out;
-    assign regcAddr = Reg_Target_i;
-    assign regcWr = R_MEM_EN_i;
-    assign REG_EN = REG_EN_i;
-    assign WB_SEL = WB_SEL_i;
+    assign regcAddr = regcAddr_i;
+    assign regcWr = rst ? 1'b0 : regcWr_i;
 
     // 跳转地址
     assign jAddr = 32'd0;
 
     // 内存信号
     assign memAddr = alu_out; // 如果是 load：OK；如果是 store：
-    assign memData = rt_data_o; // 那也 OK
-    assign readWr = R_MEM_EN_i;
-    assign writeWr = W_MEM_EN_i;
-    assign rmask = R_MASK_i;
-    assign wmask = W_MASK_i;
-
+    assign memData = rt_data_i; // 那也 OK
+    assign readWr = rst ? 1'b0 : memRr_i;
+    assign writeWr = rst ? 1'b0 : memWr_i;
+    assign rmask = r_mask_i;
+    assign wmask = w_mask_i;
 
     reg [31:0] alu_out;
     // ALU
     always @(*) begin
-        case (EXE_FUNC_i)
-            ALU_ADD:
-                alu_out = regaData_i + regbData_i;
-            ALU_LW:
-                alu_out = regaData_i + regbData_i; // LW
-            ALU_SW:
-                alu_out = regaData_i + regbData_i; // SW
-            ALU_JAL:
-                alu_out = regaData_i + regbData_i; // JAL
-            ALU_BEQ:
-                alu_out = (regaData_i << 2) + regbData_i;
-            ALU_BNE:
-                alu_out = (regaData_i << 2) + regbData_i;
-            ALU_SUB:
-                alu_out = regaData_i - regbData_i;
-            ALU_AND:
-                alu_out = regaData_i & regbData_i;
-            ALU_OR:
-                alu_out = regaData_i | regbData_i;
-            ALU_XOR:
-                alu_out = regaData_i ^ regbData_i;
-            ALU_SLL:
-                alu_out = regbData_i << regaData_i;
-            ALU_SRL:
-                alu_out = regbData_i >> regaData_i;
-            ALU_SRA:
-                alu_out = regbData_i >>> regaData_i; // 数学右移
-            ALU_LUI:
-                alu_out = regaData_i;
-            default:
-                alu_out = 32'b0;
-        endcase
+        if (rst) begin
+            alu_out = 32'b0; // 复位时 ALU 输出为 0
+        end
+        else begin
+            case (op_i)
+                ALU_ADD:
+                    alu_out = regaData_i + regbData_i;
+                ALU_LW:
+                    alu_out = regaData_i + regbData_i; // LW
+                ALU_SW:
+                    alu_out = regaData_i + regbData_i; // SW
+                ALU_JAL:
+                    alu_out = regaData_i + regbData_i; // JAL
+                ALU_BEQ:
+                    alu_out = (regaData_i << 2) + regbData_i;
+                ALU_BNE:
+                    alu_out = (regaData_i << 2) + regbData_i;
+                ALU_SUB:
+                    alu_out = regaData_i - regbData_i;
+                ALU_AND:
+                    alu_out = regaData_i & regbData_i;
+                ALU_OR:
+                    alu_out = regaData_i | regbData_i;
+                ALU_XOR:
+                    alu_out = regaData_i ^ regbData_i;
+                ALU_SLL:
+                    alu_out = regbData_i << regaData_i;
+                ALU_SRL:
+                    alu_out = regbData_i >> regaData_i;
+                ALU_SRA:
+                    alu_out = regbData_i >>> regaData_i; // 数学右移
+                ALU_LUI:
+                    alu_out = regaData_i;
+                default:
+                    alu_out = 32'b0;
+            endcase
+        end
     end
 
 
     always @(*) begin
-        case (EXE_FUNC_i)
-            ALU_J:
-                jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
-            ALU_JR:
-                jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
-            ALU_JAL:
-                jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
-            ALU_BEQ:
-                jAddr = alu_out; // 直接连接 alu_out
-            ALU_BNE:
-                jAddr = alu_out; // 直接连接 alu_out
-            default:
-                jAddr = 32'b0;
-        endcase
+        if (rst) begin
+            jAddr = 32'b0;
+        end
+        else begin
+            case ( op_i)
+                ALU_J:
+                    jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
+                ALU_JR:
+                    jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
+                ALU_JAL:
+                    jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
+                ALU_BEQ:
+                    jAddr = alu_out; // 直接连接 alu_out
+                ALU_BNE:
+                    jAddr = alu_out; // 直接连接 alu_out
+                default:
+                    jAddr = 32'b0;
+            endcase
+        end
     end
 endmodule

@@ -1,10 +1,6 @@
-
-
 `include "Helpers.v"  // 包含 constants.v 文件
-
 module IDU (
-
-        // input wire rst,               // 复位信号
+        input wire rst,               // 复位信号
         input wire [31:0] pc,
         input wire [31:0] inst,             // 输入指令
         input wire [31:0] regaData_i,       // 寄存器 A 数据
@@ -23,16 +19,13 @@ module IDU (
         output wire [4:0] regbAddr,          // 读地址 b
 
         // 信号传递给 EXU
-        output reg [5:0] EXE_FUNC,   // ALU 功能
-        output reg [0:0] W_MEM_EN,     // 内存写使能
-        output reg [0:0] R_MEM_EN,     // 内存读使能
-        output reg [3:0] W_MASK,     // w_mask
-        output reg [3:0] R_MASK,     // r_mask
-        output reg [0:0] REG_EN,     // 寄存器写使能
-        output reg [1:0] WB_SEL,     // WB 数据来源
-        output reg [4:0] Reg_Target,     // WB 数据地址
-        // output reg  regcWr_i,              // 写使能信号
-        // output reg [4:0] regcAddr_i,       // 目标寄存器地址
+        output reg [5:0] op,   // ALU 功能
+        output reg [0:0] memWr,     // 内存写使能
+        output reg [0:0] memRr,     // 内存读使能
+        output reg [3:0] w_mask,     // w_mask
+        output reg [3:0] r_mask,     // r_mask
+        output reg [0:0] regcWr,     // 寄存器写使能
+        output reg [4:0] regcAddr,     // WB 数据地址
         output reg [31:0] rt_data_o // load 指令写入的地址，for WBU
 
     );
@@ -105,7 +98,7 @@ module IDU (
 
         casez (inst[31:0])
             32'b000000_?????_?????_?????_00000_??????: begin
-                Reg_Target = rd_addr;
+                regcAddr = rd_addr;
                 if (inst[5:0] == FUNCT_ADD) begin
                     is_add = 1'b1;
                 end
@@ -123,7 +116,7 @@ module IDU (
                 end
             end
             32'b000000_00000_?????_?????_?????_??????: begin
-                Reg_Target = rd_addr;
+                regcAddr = rd_addr;
                 if (inst[5:0] == FUNCT_SLL) begin
                     is_sll = 1'b1;
                 end
@@ -137,7 +130,7 @@ module IDU (
 
             // I-type instructions
             32'b??????_?????_?????_?????_?????_??????: begin
-                Reg_Target = rt_addr;
+                regcAddr = rt_addr;
 
                 if(inst[31:26] == FUNCT_ADDI) begin
                     is_addi = 1'b1; // addi
@@ -166,7 +159,7 @@ module IDU (
             32'b000101_?????_?????_?????_?????_??????:
                 is_bne  = 1'b1; // bne
             32'b001111_00000_?????_?????_?????_??????: begin
-                Reg_Target = rt_addr;
+                regcAddr = rt_addr;
                 is_lui  = 1'b1; // lui
             end
 
@@ -175,7 +168,7 @@ module IDU (
             32'b000010_?????_?????_?????_?????_??????:
                 is_j   = 1'b1; // j
             32'b000011_?????_?????_?????_?????_??????: begin
-                Reg_Target = 5'd31; // jal 需要回写到 31 号寄存器
+                regcAddr = 5'd31; // jal 需要回写到 31 号寄存器
                 is_jal = 1'b1; // jal
             end
 
@@ -198,277 +191,264 @@ module IDU (
     reg [2:0] OP2_SEL;  // 第二操作数来源
 
     always @(*) begin
-        case (1'b1)
-            is_add: begin
-                EXE_FUNC = ALU_ADD;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+        if (rst) begin
+            op = ALU_X;
+            OP1_SEL = OP1_X;
+            OP2_SEL = OP2_X;
+            memWr = WMEN_X;
+            memRr = RMEN_X;
+            regcWr = REN_S;
+            w_mask = WMASK_X;
+            r_mask = RMASK_X;
+            regcAddr = 5'd0;
+        end
+        else begin
+            case (1'b1)
+                is_add: begin
+                    op = ALU_ADD;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
-                Reg_Target = rd_addr;
+                    regcAddr = rd_addr;
 
-            end
-            is_sub: begin
-                EXE_FUNC = ALU_SUB;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-
-            end
-            is_and: begin
-                EXE_FUNC = ALU_AND;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_sub: begin
+                    op = ALU_SUB;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
-            is_or: begin
-                EXE_FUNC = ALU_OR;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_and: begin
+                    op = ALU_AND;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
-            is_xor: begin
-                EXE_FUNC = ALU_XOR;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_or: begin
+                    op = ALU_OR;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
-            is_sll: begin
-                EXE_FUNC = ALU_SLL;
-                OP1_SEL = OP1_IM_SA;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_xor: begin
+                    op = ALU_XOR;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
-            is_srl: begin
-                EXE_FUNC = ALU_SRL;
-                OP1_SEL = OP1_IM_SA;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_sll: begin
+                    op = ALU_SLL;
+                    OP1_SEL = OP1_IM_SA;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
-            is_sra: begin
-                EXE_FUNC = ALU_SRA;
-                OP1_SEL = OP1_IM_SA;
-                OP2_SEL = OP2_RT;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-            end
-
-            is_addi: begin
-                EXE_FUNC = ALU_ADD;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_IMS; // 符号扩展
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-            end
-            is_andi: begin
-                EXE_FUNC = ALU_AND;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_IMZ; // 零扩展
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-            end
-            is_ori: begin
-                EXE_FUNC = ALU_OR;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_IMZ;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-            end
-            is_xori: begin
-                EXE_FUNC = ALU_XOR;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_IMZ;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-            end
-            is_lw: begin
-                EXE_FUNC = ALU_LW;
-                OP1_SEL = OP1_RS; // 同 base
-                OP2_SEL = OP2_IM_OFFSET_S; // 立即数 offset 符号扩展
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_S; // 读内存
-                REG_EN = REN_X;
-                WB_SEL = WB_MEM; // 读取内存，写入 rd
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_C; // 读取 4 字节
-            end
-            is_sw: begin
-                EXE_FUNC = ALU_SW;
-                OP1_SEL = OP1_RS; // 同 base
-                OP2_SEL = OP2_IM_OFFSET_S;  // 立即数 offset 符号扩展
-                W_MEM_EN = WMEN_S; // 写内存
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_X;
-                WB_SEL = WB_X;
-                W_MASK = WMASK_C; // 存入 4 字节
-                R_MASK = RMASK_X;
-            end
-            // 这里比较复杂
-            is_beq: begin
-                EXE_FUNC = ALU_BEQ;
-                OP1_SEL = OP1_IMS;
-                OP2_SEL = OP2_PC;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_X; // PC 不是普通寄存器，可以直接在 EXU 中改写
-                WB_SEL = WB_X;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_srl: begin
+                    op = ALU_SRL;
+                    OP1_SEL = OP1_IM_SA;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
-            is_bne: begin
-                EXE_FUNC = ALU_BNE;
-                OP1_SEL = OP1_IMS; // 等价于符号扩展的 offset
-                OP2_SEL = OP2_PC;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_X;
-                WB_SEL = WB_X;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_sra: begin
+                    op = ALU_SRA;
+                    OP1_SEL = OP1_IM_SA;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+
+                end
+
+                is_addi: begin
+                    op = ALU_ADD;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_IMS; // 符号扩展
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+
+                end
+                is_andi: begin
+                    op = ALU_AND;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_IMZ; // 零扩展
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+
+                end
+                is_ori: begin
+                    op = ALU_OR;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_IMZ;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+
+                end
+                is_xori: begin
+                    op = ALU_XOR;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_IMZ;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+
+                end
+                is_lw: begin
+                    op = ALU_LW;
+                    OP1_SEL = OP1_RS; // 同 base
+                    OP2_SEL = OP2_IM_OFFSET_S; // 立即数 offset 符号扩展
+                    memWr = WMEN_X;
+                    memRr = RMEN_S; // 读内存
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_C; // 读取 4 字节
+                end
+                is_sw: begin
+                    op = ALU_SW;
+                    OP1_SEL = OP1_RS; // 同 base
+                    OP2_SEL = OP2_IM_OFFSET_S;  // 立即数 offset 符号扩展
+                    memWr = WMEN_S; // 写内存
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_C; // 存入 4 字节
+                    r_mask = RMASK_X;
+                end
+                // 这里比较复杂
+                is_beq: begin
+                    op = ALU_BEQ;
+                    OP1_SEL = OP1_IMS;
+                    OP2_SEL = OP2_PC;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X; // PC 不是普通寄存器，可以直接在 EXU 中改写
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
-            is_lui: begin
-                EXE_FUNC = ALU_LUI;
-                OP1_SEL = OP1_LUI;
-                OP2_SEL = OP2_X; // imm 送入高 16 位
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-            end
-            is_j: begin
-                EXE_FUNC = ALU_J;
-                OP1_SEL = OP1_PC;
-                OP2_SEL = OP2_ADDRESS;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_X;
-                WB_SEL = WB_X;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_bne: begin
+                    op = ALU_BNE;
+                    OP1_SEL = OP1_IMS; // 等价于符号扩展的 offset
+                    OP2_SEL = OP2_PC;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
 
-            end
+                end
+                is_lui: begin
+                    op = ALU_LUI;
+                    OP1_SEL = OP1_LUI;
+                    OP2_SEL = OP2_X; // imm 送入高 16 位
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
-            // 并保存 PC
-            is_jal: begin
-                EXE_FUNC = ALU_JAL; // 这里可以将其当成加法
-                OP1_SEL = OP1_PC;
-                OP2_SEL = OP2_IM_4;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_S; // jal 需要回写寄存器，可以将其放在 alu_out,
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                end
+                is_j: begin
+                    op = ALU_J;
+                    OP1_SEL = OP1_PC;
+                    OP2_SEL = OP2_ADDRESS;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
 
+                // 并保存 PC
+                is_jal: begin
+                    op = ALU_JAL; // 这里可以将其当成加法
+                    OP1_SEL = OP1_PC;
+                    OP2_SEL = OP2_IM_4;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S; // jal 需要回写寄存器，可以将其放在 alu_out,
 
-            end
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
 
-            is_jr: begin
-                EXE_FUNC = ALU_JR;
-                OP1_SEL = OP1_RS;
-                OP2_SEL = OP2_X;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_X;
-                WB_SEL = WB_ALU;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
+                is_jr: begin
+                    op = ALU_JR;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
 
+                default: begin
+                    op = ALU_X;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
 
-            end
-
-            default: begin
-                EXE_FUNC = ALU_X;
-                OP1_SEL = OP1_X;
-                OP2_SEL = OP2_X;
-                W_MEM_EN = WMEN_X;
-                R_MEM_EN = RMEN_X;
-                REG_EN = REN_X;
-                WB_SEL = WB_X;
-                W_MASK = WMASK_X;
-                R_MASK = RMASK_X;
-
-            end
-        endcase
+                end
+            endcase
+        end
     end
 
     // 根据解析到的信号，生成第一操作数，第二操作数
@@ -512,7 +492,7 @@ module IDU (
 
     // 跳转信号
     always @(*) begin
-        case (EXE_FUNC)
+        case (op)
             ALU_BEQ:
                 jCe = (regaData == regbData);
             ALU_BNE:

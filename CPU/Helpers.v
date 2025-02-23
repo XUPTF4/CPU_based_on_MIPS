@@ -11,7 +11,7 @@
         // 零扩展宏：zeroExtend(num, n)
 `define zeroExtend(num, n)  {{(32 - n){1'b0}}, num}
 
-        parameter ALU_X     = 6'b000000;
+parameter ALU_X     = 6'b000000;
 parameter ALU_ADD   = 6'b000001;
 parameter ALU_SUB   = 6'b000010;
 parameter ALU_AND   = 6'b000011;

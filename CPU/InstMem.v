@@ -5,14 +5,11 @@ module InstMem(
         output  [31:0] data
     );
 
-    reg [7:0] mem [0:2047];
+    reg [31:0] mem [0:1023]; // 4KB
     initial begin
         $readmemh("C:/path_to_dummy.hex", mem);
     end
 
-    assign data = ce ? {mem[addr[10:0] + 3],
-                        mem[addr[10:0] + 2],
-                        mem[addr[10:0] + 1],
-                        mem[addr[10:0]]} : 32'b0;
+    assign data = ce ? mem[addr] : 32'b0;
 
 endmodule

@@ -2,12 +2,8 @@
 
 `ifndef HELPERS_V  // 防止重复包含的宏定义
 `define HELPERS_V
-
-
-        // 译码器
         // 符号扩展宏：signExtend(num, n)
 `define signExtend(num, n)  {{(32 - n){num[n-1]}}, num}
-
         // 零扩展宏：zeroExtend(num, n)
 `define zeroExtend(num, n)  {{(32 - n){1'b0}}, num}
 

@@ -10,7 +10,7 @@ module DataMem(
 
     output reg [31:0] rdData // 输出给 MEM
 );
-    reg [31:0] memory [0:1023];  // 2K 内存，1024 个 32 位数据
+    reg [31:0] memory [0:1023];  // 4KB 内存
     reg [31:0] temp_mem_data;
     reg [31:0] temp_reg_data;
 

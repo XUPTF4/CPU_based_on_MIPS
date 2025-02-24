@@ -1,22 +1,22 @@
 // 寄存器
 module RegFile (
-        input wire clk,               // 时钟信号
-        input wire rst,               // 复位信号
+        input wire clk,                 // 时钟信号
+        input wire rst,                 // 复位信号
 
         // to IDU
-        output wire [31:0] regaData,  // 读端口 A 数据
-        output wire [31:0] regbData,  // 读端口 B 数据
+        output wire [31:0] regaData,    // 读端口 A 数据
+        output wire [31:0] regbData,    // 读端口 B 数据
 
         // from IDU
-        input wire [4:0] regaAddr,    // 读端口 A 地址
-        input wire regaRd,        // 读使能
-        input wire [4:0] regbAddr,    // 读端口 B 地址
-        input wire  regbRd,        // 读使能
+        input wire [4:0] regaAddr,      // 读端口 A 地址
+        input wire regaRd,              // 读使能
+        input wire [4:0] regbAddr,      // 读端口 B 地址
+        input wire  regbRd,             // 读使能
 
         // from WBU
-        input wire we,                // 写使能
-        input wire [4:0] wAddr,       // 写地址
-        input wire [31:0] wData      // 写数据
+        input wire we,                  // 写使能
+        input wire [4:0] wAddr,         // 写地址
+        input wire [31:0] wData         // 写数据
     );
 
     reg [31:0] registers [31:0];  // 32 个 32 位寄存器

@@ -4,13 +4,13 @@ module DataMem(
     input we,
     input [31:0] wtData,
     input [31:0] addr,
-    input memRr,      // 内存读使能 (输出信号)
-    input [3:0] w_mask,        // w_mask (写掩码)
-    input [3:0] r_mask,        // r_mask (读掩码)
+    input memRr,                // 内存读使能 (输出信号)
+    input [3:0] w_mask,         // w_mask (写掩码)
+    input [3:0] r_mask,         // r_mask (读掩码)
 
-    output reg [31:0] rdData // 输出给 MEM
+    output reg [31:0] rdData    // 输出给 MEM
 );
-    reg [31:0] memory [0:1023];  // 4KB 内存
+    reg [31:0] memory [0:1023]; // 4KB 内存
     reg [31:0] temp_mem_data;
     reg [31:0] temp_reg_data;
 

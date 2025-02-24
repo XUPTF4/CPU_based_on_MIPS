@@ -1,32 +1,32 @@
 `include "Helpers.v"  // 包含 constants.v 文件
 module IDU (
-        input wire rst,               // 复位信号
+        input wire rst,                 // 复位信号
         input wire [31:0] pc,
-        input wire [31:0] inst,             // 输入指令
-        input wire [31:0] regaData_i,       // 寄存器 A 数据
-        input wire [31:0] regbData_i,       // 寄存器 B 数据, 这个输出还要负责处理立即数的传递
+        input wire [31:0] inst,         // 输入指令
+        input wire [31:0] regaData_i,   // 寄存器 A 数据
+        input wire [31:0] regbData_i,   // 寄存器 B 数据, 这个输出还要负责处理立即数的传递
 
-        output reg [31:0] regaData,        // 操作数 a
-        output reg [31:0] regbData,        // 操作数 b, 为了利用 case 语法特性，这里使用 reg
+        output reg [31:0] regaData,     // 操作数 a
+        output reg [31:0] regbData,     // 操作数 b, 为了利用 case 语法特性，这里使用 reg
 
         // 跳转使能由 IDU 生成，跳转地址由 EXU 生成
-        output reg jCe,                             // 跳转使能
+        output reg jCe,                 // 跳转使能
 
         // 连接 RegFile
-        output wire  regaRd,                // 读使能
-        output wire [4:0] regaAddr,         // 读地址 a
-        output wire  regbRd,                // 读使能
-        output wire [4:0] regbAddr,          // 读地址 b
+        output wire  regaRd,            // 读使能
+        output wire [4:0] regaAddr,     // 读地址 a
+        output wire  regbRd,            // 读使能
+        output wire [4:0] regbAddr,     // 读地址 b
 
         // 信号传递给 EXU
-        output reg [5:0] op,   // ALU 功能
-        output reg [0:0] memWr,     // 内存写使能
-        output reg [0:0] memRr,     // 内存读使能
-        output reg [3:0] w_mask,     // w_mask
-        output reg [3:0] r_mask,     // r_mask
-        output reg [0:0] regcWr,     // 寄存器写使能
-        output reg [4:0] regcAddr,     // WB 数据地址
-        output reg [31:0] rt_data_o // load 指令写入的地址，for WBU
+        output reg [5:0] op,            // ALU 功能
+        output reg [0:0] memWr,         // 内存写使能
+        output reg [0:0] memRr,         // 内存读使能
+        output reg [3:0] w_mask,        // w_mask
+        output reg [3:0] r_mask,        // r_mask
+        output reg [0:0] regcWr,        // 寄存器写使能
+        output reg [4:0] regcAddr,      // WB 数据地址
+        output reg [31:0] rt_data_o     // load 指令写入的地址，for WBU
 
     );
     // 提取指令字段
@@ -75,26 +75,26 @@ module IDU (
 
     always @(*) begin
         // 20 条 I 型指令
-        is_add = 1'b0;
-        is_sub = 1'b0;
-        is_and = 1'b0;
-        is_or = 1'b0;
-        is_xor = 1'b0;
-        is_sll = 1'b0;
-        is_srl = 1'b0;
-        is_sra = 1'b0;
-        is_jr = 1'b0;
+        is_add  = 1'b0;
+        is_sub  = 1'b0;
+        is_and  = 1'b0;
+        is_or   = 1'b0;
+        is_xor  = 1'b0;
+        is_sll  = 1'b0;
+        is_srl  = 1'b0;
+        is_sra  = 1'b0;
+        is_jr   = 1'b0;
         is_addi = 1'b0;
         is_andi = 1'b0;
-        is_ori = 1'b0;
+        is_ori  = 1'b0;
         is_xori = 1'b0;
-        is_lw = 1'b0;
-        is_sw = 1'b0;
-        is_beq = 1'b0;
-        is_bne = 1'b0;
-        is_lui = 1'b0;
-        is_j = 1'b0;
-        is_jal = 1'b0;
+        is_lw   = 1'b0;
+        is_sw   = 1'b0;
+        is_beq  = 1'b0;
+        is_bne  = 1'b0;
+        is_lui  = 1'b0;
+        is_j    = 1'b0;
+        is_jal  = 1'b0;
 
         casez (inst[31:0])
             32'b000000_?????_?????_?????_00000_??????: begin

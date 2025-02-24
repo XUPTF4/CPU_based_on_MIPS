@@ -40,14 +40,21 @@ void stepi() {
 void cpu_exec(uint64_t n) {
     // 执行 n 条指令
     while (n) {
+        // printf("PC:0x%08x--->INST:0x%08x\n", top->rootp->CPU__DOT__ifu_pc,
+        //        top->rootp->CPU__DOT__instMem_data);
         stepi();
-        if(top->rootp->CPU__DOT__idu__DOT__is_break){
+        if (top->rootp->CPU__DOT__idu__DOT__is_break) {
             // 执行结束
             // 检查 is_OK
-            if(top->rootp->CPU__DOT__exu_is_OK){
+            if (top->rootp->CPU__DOT__exu_is_OK == 1) {
                 printf(" HIT bad trap.");
+            } else {
+                printf(" HIT good trap.");
             }
-            else printf(" HIT good trap.");
+        } else if (top->rootp->CPU__DOT__idu__DOT__is_unknown) {
+            printf("unknown instruction----> PC:0x%08x--->INST:0x%08x\n",
+                   top->rootp->CPU__DOT__ifu_pc,
+                   top->rootp->CPU__DOT__instMem_data);
         }
         n--;
     }
@@ -60,9 +67,9 @@ int main(int argc, char* argv[]) {
     top->trace(tfp, 99);
     tfp->open("wave.vcd");
 
-    reset(2);
+    reset(5);
 
-    cpu_exec(10000); // 先执行 200 个指令周期
+    cpu_exec(50);  // 先执行 200 个指令周期
 
     return 0;
 }

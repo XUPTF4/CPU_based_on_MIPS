@@ -31,6 +31,9 @@ parameter ALU_J = 6'b010011;
 parameter ALU_JAL = 6'b010100;
 parameter ALU_SYSCALL = 6'b010101;
 parameter ALU_BREAK = 6'b010110;
+parameter ALU_UNKNOWN = 6'b010111;
+parameter ALU_BGEZAL =  6'b011000;
+parameter ALU_ADDIU  =  6'b011001;
 
 //
 parameter FUNCT_ADD  = 6'b100000;

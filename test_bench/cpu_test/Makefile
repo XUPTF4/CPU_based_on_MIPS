@@ -2,6 +2,9 @@
 
 # MIPS 工具链
 MIPS_GCC = mips-linux-gnu-gcc
+
+MIPS_LD = mips-linux-gnu-ld
+
 OBJCOPY = mips-linux-gnu-objcopy
 HEXDUMP = hexdump
 
@@ -9,14 +12,23 @@ OBJDUMP = mips-linux-gnu-objdump
 
 # 文件路径设置
 CPU_HOME = /home/luyoung/CPU_based_on_MIPS
-CSRC = $(wildcard $(CPU_HOME)/test_bench/am/*.c)  # 获取所有 .c 文件
-ASM_SRC = $(CPU_HOME)/test_bench/am/start.S  # 汇编文件
+CSRC = $(wildcard $(CPU_HOME)/test_bench/am/*.c)
+ASM_SRC = $(CPU_HOME)/test_bench/am/start.S
 
-LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld -nostartfiles -nodefaultlibs
+# 包含目录和标志
+INCLUDE = include
+INCFLAGS = $(addprefix -I, $(INCLUDE))
 
-C_FLAGS = -O2 -mlong-calls
+# 汇编文件路径
+ASM_FILE = $(BUILD_DIR)/$(ALL)_mips.txt
 
-# 十六进制转储选项
+LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld -z noexecstack -Ttext=0x00000000
+
+C_FLAGS = -O2 -MMD -Wall -Werror -fno-asynchronous-unwind-tables -fno-builtin -fno-stack-protector \
+            -Wno-main -U_FORTIFY_SOURCE -fvisibility=hidden
+
+AS_FLAGS = -MMD $(INCFLAGS)
+
 FLAGS_HDUMP = -v -e '4/1 "%02x " "\n"'
 
 # 输出目录
@@ -28,12 +40,7 @@ ALL ?= return
 # C 文件和汇编文件
 C_FILE = tests/$(ALL).c $(CSRC)
 
-# 包含目录和标志
-INCLUDE = include
-INCFLAGS = $(addprefix -I, $(INCLUDE))
 
-# 汇编文件路径
-ASM_FILE = $(BUILD_DIR)/$(ALL)_mips.txt
 
 # 编译目标
 $(BUILD_DIR)/$(ALL).o: $(C_FILE) $(ASM_SRC)
@@ -45,11 +52,10 @@ $(BUILD_DIR)/$(ALL).o: $(C_FILE) $(ASM_SRC)
 	done
 
 	# 编译 .S 汇编文件为 .o 文件
-	$(MIPS_GCC) -mlong-calls -c $(ASM_SRC) $(INCFLAGS) -o $(BUILD_DIR)/$(ALL).asm.o
+	$(MIPS_GCC) $(AS_FLAGS) -c $(ASM_SRC) -o $(BUILD_DIR)/start.S.o
 
 	# 链接所有目标文件（.c 和 .S 文件）生成一个单独的目标文件 (.o)
-	$(MIPS_GCC) $(LD_FALGS) $(BUILD_DIR)/*.o -o $(BUILD_DIR)/$(ALL).o -Wl,-verbose
-	# $(MIPS_GCC) $(LD_FALGS) $(BUILD_DIR)/$(ALL).asm.o $(BUILD_DIR)/*.o -o $(BUILD_DIR)/$(ALL).o
+	$(MIPS_LD) $(LD_FALGS) $(BUILD_DIR)/*.o -o $(BUILD_DIR)/$(ALL).o
 
 	# 使用 objcopy 提取 .text 段并生成二进制文件
 	$(OBJCOPY) -O binary -j .text $(BUILD_DIR)/$(ALL).o $(BUILD_DIR)/$(ALL).bin
@@ -58,7 +64,7 @@ $(BUILD_DIR)/$(ALL).o: $(C_FILE) $(ASM_SRC)
 	$(HEXDUMP) $(FLAGS_HDUMP) $(BUILD_DIR)/$(ALL).bin > $(BUILD_DIR)/$(ALL).hex
 
 	# 反汇编 .o 文件
-	$(OBJDUMP) -D -j .text $(BUILD_DIR)/$(ALL).o > $(ASM_FILE)
+	$(OBJDUMP) -D -j .text -M no-aliases $(BUILD_DIR)/$(ALL).o > $(ASM_FILE)
 
 	# 处理汇编文件
 	@echo "Processing $(ASM_FILE)..."

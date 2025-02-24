@@ -1,16 +1,14 @@
 ENTRY(_start)
 
 MEMORY {
-  rom(rx) : ORIGIN = 0x00000000, LENGTH = 64K  # ROM 起始地址和大小
-  ram(rw) : ORIGIN = 0x00001000, LENGTH = 64K  # RAM 起始地址和大小
+  rom(rx) : ORIGIN = 0x00000000, LENGTH = 4K  # ROM 起始地址和大小
+  ram(rw) : ORIGIN = 0x00000000, LENGTH = 4K  # RAM 起始地址和大小
 }
 
 SECTIONS {
-  .entry : ALIGN(4) {
-    *(entry)
-  } > rom
-
+    . = 0x00000000; /* 起始地址为 0 */
   .text : ALIGN(4) {
+    *(entry)
     *(.text*)
   } > rom
 
@@ -38,7 +36,7 @@ SECTIONS {
   _ebss = ADDR(.bss) + SIZEOF(.bss);
 
   # 堆和栈分配
-  _heap_start = 0x00101000;  # 堆的起始地址
-  _heap_end = ORIGIN(ram) + LENGTH(ram) - 0x1000;  # 堆的结束地址
+  _heap_start = 0x00000100;  # 堆的起始地址
+  _heap_end = ORIGIN(ram) + LENGTH(ram);  # 堆的结束地址
   _stack_pointer = _heap_end;  # 栈指针设置为堆的结束地址
 }

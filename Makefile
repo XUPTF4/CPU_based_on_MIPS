@@ -19,7 +19,7 @@ simu: clean
 build: simu
 	bear -- make -C $(OBJ_DIR) -f V$(TOP).mk -j6
 
-run:
+run: build
 	$(EXE)
 
 clean:

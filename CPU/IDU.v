@@ -68,7 +68,11 @@ module IDU (
         is_sll, is_srl, is_sra, is_jr,
         is_addi, is_andi, is_ori, is_xori,
         is_lw, is_sw, is_beq, is_bne,
-        is_lui, is_j, is_jal, is_syscall, is_break;
+        is_lui, is_j, is_jal;
+
+    reg is_syscall, is_break, is_unknown;
+
+    reg is_bgezal, is_addiu;
 
 
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
@@ -96,74 +100,87 @@ module IDU (
         is_j = 1'b0;
         is_jal = 1'b0;
         is_syscall = 1'b0;
+        is_break = 1'b0;
+        is_unknown = 1'b0;
+        is_bgezal = 1'b0;
+        is_addiu = 1'b0;
 
         casez (inst[31:0])
-            32'b000000_?????_?????_?????_00000_??????: begin
+            32'b000000_?????_?????_?????_00000_100000: begin
                 regcAddr = rd_addr;
-                if (inst[5:0] == FUNCT_ADD) begin
-                    is_add = 1'b1;
-                end
-                else if (inst[5:0] == FUNCT_SUB) begin
-                    is_sub = 1'b1;
-                end
-                else if (inst[5:0] == FUNCT_AND) begin
-                    is_and = 1'b1;
-                end
-                else if (inst[5:0] == FUNCT_OR) begin
-                    is_or = 1'b1;
-                end
-                else if (inst[5:0] == FUNCT_XOR) begin
-                    is_xor = 1'b1;
-                end
+                is_add = 1'b1;
             end
-            32'b000000_00000_?????_?????_?????_??????: begin
+            32'b000000_?????_?????_?????_00000_100010: begin
                 regcAddr = rd_addr;
-                if (inst[5:0] == FUNCT_SLL) begin
-                    is_sll = 1'b1;
-                end
-                if (inst[5:0] == FUNCT_SRL) begin
-                    is_srl = 1'b1;
-                end
-                if (inst[5:0] == FUNCT_SRA) begin
-                    is_sra = 1'b1;
-                end
+                is_sub = 1'b1;
             end
-
+            32'b000000_?????_?????_?????_00000_100100: begin
+                regcAddr = rd_addr;
+                is_and = 1'b1;
+            end
+            32'b000000_?????_?????_?????_00000_100101: begin
+                regcAddr = rd_addr;
+                is_or = 1'b1;
+            end
+            32'b000000_?????_?????_?????_00000_100110: begin
+                regcAddr = rd_addr;
+                is_xor = 1'b1;
+            end
+            32'b000000_00000_?????_?????_?????_000000: begin
+                regcAddr = rd_addr;
+                is_sll = 1'b1;
+            end
+            32'b000000_00000_?????_?????_?????_000010: begin
+                regcAddr = rd_addr;
+                is_srl = 1'b1;
+            end
+            32'b000000_00000_?????_?????_?????_000011: begin
+                regcAddr = rd_addr;
+                is_sra = 1'b1;
+            end
             // I-type instructions
-            32'b??????_?????_?????_?????_?????_??????: begin
+            32'b001000_?????_?????_?????_?????_??????: begin
                 regcAddr = rt_addr;
-
-                if(inst[31:26] == FUNCT_ADDI) begin
-                    is_addi = 1'b1; // addi
-                end
-                if(inst[31:26] == FUNCT_ANDI) begin
-                    is_andi = 1'b1; // andi
-                end
-                if(inst[31:26] == FUNCT_ORI) begin
-                    is_ori  = 1'b1; // ori
-                end
-                if(inst[31:26] == FUNCT_XORI) begin
-                    is_xori = 1'b1; // xori
-                end
-                if(inst[31:26] == FUNCT_LW) begin
-                    is_lw   = 1'b1; // lw
-                end
-
+                is_addi = 1'b1; // addi
             end
 
+            32'b001001_?????_?????_?????_?????_??????: begin
+                regcAddr = rt_addr;
+                is_addiu = 1'b1; // addiu
+            end
 
+            32'b001100_?????_?????_?????_?????_??????: begin
+                regcAddr = rt_addr;
+                is_andi = 1'b1; // andi
+            end
+            32'b001101_?????_?????_?????_?????_??????: begin
+                regcAddr = rt_addr;
+                is_ori  = 1'b1; // ori
+            end
+            32'b001110_?????_?????_?????_?????_??????: begin
+                regcAddr = rt_addr;
+                is_xori = 1'b1; // xori
+            end
+            32'b100011_?????_?????_?????_?????_??????: begin
+                regcAddr = rt_addr;
+                is_lw   = 1'b1; // lw
 
+            end
             32'b101011_?????_?????_?????_?????_??????:
                 is_sw   = 1'b1; // sw
             32'b000100_?????_?????_?????_?????_??????:
                 is_beq  = 1'b1; // beq
             32'b000101_?????_?????_?????_?????_??????:
                 is_bne  = 1'b1; // bne
+            32'b000001_?????_10001_?????_?????_??????:
+                is_bgezal = 1'b1; // bgezal
+
+
+
             32'b001111_00000_?????_?????_?????_??????: begin
                 regcAddr = rt_addr;
                 is_lui  = 1'b1; // lui
             end
-
 
             // J-type instructions
             32'b000010_?????_?????_?????_?????_??????:
@@ -173,18 +190,19 @@ module IDU (
                 is_jal = 1'b1; // jal
             end
 
-            32'b000000_?????_00000_00000_00001_001000: begin // jr
-                if (inst[5:0] == FUNCT_JR) begin
-                    is_jr = 1'b1;
-                end
-            end
+            32'b000000_?????_00000_00000_00000_001000:
+                is_jr = 1'b1;
             32'b000000_?????_?????_?????_?????_001100:
                 is_syscall = 1'b1;
-
             32'b000000_?????_?????_?????_?????_001101:
                 is_break = 1'b1;
 
+
+
+
             default: begin
+                is_unknown = 1'b1; // 未实现的指令
+
             end
         endcase
     end
@@ -318,6 +336,17 @@ module IDU (
                     r_mask = RMASK_X;
 
                 end
+                is_addiu: begin
+                    op = ALU_ADD;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_IMZ; // 符号扩展
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+
+                end
                 is_andi: begin
                     op = ALU_AND;
                     OP1_SEL = OP1_RS;
@@ -393,9 +422,19 @@ module IDU (
                     regcWr = REN_X;
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
-
-
                 end
+
+                is_bgezal: begin
+                    op = ALU_BGEZAL;
+                    OP1_SEL = OP1_IMS; // 等价于符号扩展的 offset
+                    OP2_SEL = OP2_PC;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
                 is_lui: begin
                     op = ALU_LUI;
                     OP1_SEL = OP1_LUI;
@@ -463,6 +502,17 @@ module IDU (
                     r_mask = RMASK_X;
                 end
 
+                is_unknown: begin
+                    op = ALU_UNKNOWN;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
                 default: begin
                     op = ALU_X;
                     OP1_SEL = OP1_X;
@@ -521,9 +571,11 @@ module IDU (
     always @(*) begin
         case (op)
             ALU_BEQ:
-                jCe = (regaData == regbData);
+                jCe = (regaData_i == regbData_i);
             ALU_BNE:
-                jCe = (regaData != regbData);
+                jCe = (regaData_i != regbData_i);
+            ALU_BGEZAL:
+                jCe = (regaData_i[31] == 1'b0); // 符号位如果为 0，就是非负，那么一定大于等于 0
             ALU_J:
                 jCe = 1'b1;
             ALU_JAL:

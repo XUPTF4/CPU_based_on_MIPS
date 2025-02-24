@@ -76,6 +76,8 @@ module EXU (
                     alu_out = (regaData_i << 2) + regbData_i;
                 ALU_BNE:
                     alu_out = (regaData_i << 2) + regbData_i;
+                ALU_BGEZAL:
+                    alu_out = (regaData_i << 2) + regbData_i;
                 ALU_SUB:
                     alu_out = regaData_i - regbData_i;
                 ALU_AND:
@@ -115,6 +117,8 @@ module EXU (
                     jAddr = alu_out; // 直接连接 alu_out
                 ALU_BNE:
                     jAddr = alu_out; // 直接连接 alu_out
+                ALU_BGEZAL:
+                    jAddr = alu_out; // 直接连接 alu_out
                 default:
                     jAddr = 32'b0;
             endcase
@@ -126,6 +130,8 @@ module EXU (
                 is_OK = 2'b00;
             ALU_BREAK:
                 is_OK = alu_out[1:0];
+            ALU_UNKNOWN:
+                is_OK = 2'b10; // 2 代表未知指令
             default:
                 is_OK = 2'b00;
         endcase

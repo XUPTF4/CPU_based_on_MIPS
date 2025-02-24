@@ -1,7 +1,8 @@
 // 顶层模块
 module CPU (
         input wire clk,
-        input wire rst
+        input wire rst,
+        output wire [1:0] isOK
     );
     // 信号连线
     // IFU
@@ -39,6 +40,10 @@ module CPU (
     wire exu_writeWr;               // 内存写使能
     wire [3:0] exu_rmask;           // 读掩码
     wire [3:0] exu_wmask;           // 写掩码
+
+    wire [1:0] exu_is_OK;             // 退出状态，之所以定义是因为怕信号不用被优化掉
+
+    assign isOK = exu_is_OK;
 
     // MEM
     wire [31:0] mem_regData;        // 寄存器数据 (输出信号)
@@ -152,7 +157,8 @@ module CPU (
             // for WBU
             .regcWr_i(idu_regcWr),
             .regcAddr_i(idu_regcAddr),
-            .rt_data_i(idu_rt_data_o) // 这是 rt 中 的数据，将其传到 mem 中，为了 SW 等 LOAD 指令
+            .rt_data_i(idu_rt_data_o), // 这是 rt 中 的数据，将其传到 mem 中，为了 SW 等 LOAD 指令
+            .is_OK(exu_is_OK)
         );
     MEM mem(
             .rst(rst),

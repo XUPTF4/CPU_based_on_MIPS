@@ -32,7 +32,9 @@ module EXU (
         input wire [31:0] regbData_i,       // 源 B 数据
         input wire [0:0] regcWr_i,          // 寄存器写使能 (输入信号)
         input wire [4:0] regcAddr_i,        // WB 数据地址
-        input wire [31:0] rt_data_i         // store 指令写入的数据，for MEM
+        input wire [31:0] rt_data_i,        // store 指令写入的数据，for MEM
+
+        output wire [1:0] is_OK             // 标记程序退出时的状态
     );
 
     // WB
@@ -50,6 +52,9 @@ module EXU (
     assign writeWr = rst ? 1'b0 : memWr_i;
     assign rmask = r_mask_i;
     assign wmask = w_mask_i;
+
+    // 默认输出
+    assign is_OK = 2'b00;
 
     reg [31:0] alu_out;
     // ALU
@@ -114,5 +119,16 @@ module EXU (
                     jAddr = 32'b0;
             endcase
         end
+    end
+    always @(*) begin
+        case (op_i)
+            ALU_SYSCALL:
+                is_OK = 2'b00;
+            ALU_BREAK:
+                is_OK = alu_out[1:0];
+            default:
+                is_OK = 2'b00;
+        endcase
+
     end
 endmodule

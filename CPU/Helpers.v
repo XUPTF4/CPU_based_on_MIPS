@@ -22,23 +22,26 @@ parameter ALU_ANDI = 6'b001011;
 parameter ALU_ORI  = 6'b001100;
 parameter ALU_XORI = 6'b001101;
 
-parameter ALU_LW   = 6'b001110;
-parameter ALU_SW   = 6'b001111;
-parameter ALU_BEQ  = 6'b010000;
-parameter ALU_BNE  = 6'b010001;
-parameter ALU_LUI  = 6'b010010;
-parameter ALU_J    = 6'b010011;
-parameter ALU_JAL  = 6'b010100;
+parameter ALU_LW      = 6'b001110;
+parameter ALU_SW      = 6'b001111;
+parameter ALU_BEQ     = 6'b010000;
+parameter ALU_BNE     = 6'b010001;
+parameter ALU_LUI     = 6'b010010;
+parameter ALU_J       = 6'b010011;
+parameter ALU_JAL     = 6'b010100;
+parameter ALU_SYSCALL = 6'b010101;
+parameter ALU_BREAK   = 6'b010110;
 
-parameter FUNCT_ADD = 6'b100000;
-parameter FUNCT_SUB = 6'b100010;
-parameter FUNCT_AND = 6'b100100;
-parameter FUNCT_OR  = 6'b100101;
-parameter FUNCT_XOR = 6'b100110;
-parameter FUNCT_SLL = 6'b000000; // shamt 字段区分
-parameter FUNCT_SRL = 6'b000010; // shamt 字段区分
-parameter FUNCT_SRA = 6'b000011; // shamt 字段区分
-parameter FUNCT_JR  = 6'b001000; // rs 字段区分
+//
+parameter FUNCT_ADD  = 6'b100000;
+parameter FUNCT_SUB  = 6'b100010;
+parameter FUNCT_AND  = 6'b100100;
+parameter FUNCT_OR   = 6'b100101;
+parameter FUNCT_XOR  = 6'b100110;
+parameter FUNCT_SLL  = 6'b000000; // shamt 字段区分
+parameter FUNCT_SRL  = 6'b000010; // shamt 字段区分
+parameter FUNCT_SRA  = 6'b000011; // shamt 字段区分
+parameter FUNCT_JR   = 6'b001000; // rs 字段区分
 
 parameter FUNCT_ADDI = 6'b001000;
 parameter FUNCT_ANDI = 6'b001100;

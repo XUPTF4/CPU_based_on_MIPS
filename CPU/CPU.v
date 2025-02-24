@@ -28,51 +28,50 @@ module CPU (
 
 
     // EXU
-    wire [31:0] exu_regcData;         // 寄存器写数据
-    wire [4:0] exu_regcAddr;          // 寄存器写地址
-    wire exu_regcWr;                  // 寄存器写使能
+    wire [31:0] exu_regcData;       // 寄存器写数据
+    wire [4:0] exu_regcAddr;        // 寄存器写地址
+    wire exu_regcWr;                // 寄存器写使能
 
-    wire [31:0] exu_jAddr;            // 跳转地址
+    wire [31:0] exu_jAddr;          // 跳转地址
 
-    wire [31:0] exu_memAddr;          // 内存访问地址
-    wire [31:0] exu_memData;          // 内存写数据
-    wire exu_readWr;                  // 内存读使能
-    wire exu_writeWr;                 // 内存写使能
-    wire [3:0] exu_rmask;             // 读掩码
-    wire [3:0] exu_wmask;             // 写掩码
+    wire [31:0] exu_memAddr;        // 内存访问地址
+    wire [31:0] exu_memData;        // 内存写数据
+    wire exu_readWr;                // 内存读使能
+    wire exu_writeWr;               // 内存写使能
+    wire [3:0] exu_rmask;           // 读掩码
+    wire [3:0] exu_wmask;           // 写掩码
 
-    wire [1:0] exu_is_OK;             // 退出状态，之所以定义是因为怕信号不用被优化掉
+    wire [1:0] exu_is_OK;           // 退出状态，之所以定义是因为怕信号不用被优化掉
 
     assign isOK = exu_is_OK;
 
     // MEM
-    wire [31:0] mem_regData;             // 寄存器数据 (输出信号)
-    wire [4:0] mem_regAddr;              // 寄存器地址 (输出信号)
-    wire mem_regWr;                      // 寄存器写使能 (输出信号)
+    wire [31:0] mem_regData;        // 寄存器数据 (输出信号)
+    wire [4:0] mem_regAddr;         // 寄存器地址 (输出信号)
+    wire mem_regWr;                 // 寄存器写使能 (输出信号)
 
-    wire [31:0] mem_memAddr;             // 内存访问地址 (输出信号)
-    wire [31:0] mem_wtData;              // 写入内存的数据 (输出信号)
-    wire mem_memCe;                      // 内存使能 (输出信号)
-    wire mem_memWr;                      // 内存写使能 (输出信号)
-    wire mem_memRr;                      // 内存读使能 (输出信号)
-    wire [3:0] mem_w_mask;               // 写掩码 (输出信号)
-    wire [3:0] mem_r_mask;               // 读掩码 (输出信号)
+    wire [31:0] mem_memAddr;        // 内存访问地址 (输出信号)
+    wire [31:0] mem_wtData;         // 写入内存的数据 (输出信号)
+    wire mem_memCe;                 // 内存使能 (输出信号)
+    wire mem_memWr;                 // 内存写使能 (输出信号)
+    wire mem_memRr;                 // 内存读使能 (输出信号)
+    wire [3:0] mem_w_mask;          // 写掩码 (输出信号)
+    wire [3:0] mem_r_mask;          // 读掩码 (输出信号)
 
     // WBU
-
     wire wbu_we;
     wire [4:0] wbu_wAddr;
     wire [31:0] wbu_wData;
 
     // RegFile
-    wire [31:0] regs_regaData;  // 读端口 A 数据
-    wire [31:0] regs_regbData;  // 读端口 B 数据
+    wire [31:0] regs_regaData;      // 读端口 A 数据
+    wire [31:0] regs_regbData;      // 读端口 B 数据
 
     // InstMem
     wire [31:0] instMem_data;
 
     // DataMem
-    wire [31:0] dataMem_rdData; // 输出给 MEM
+    wire [31:0] dataMem_rdData;     // 输出给 MEM
 
 
     IFU ifu(
@@ -89,6 +88,7 @@ module CPU (
                 .addr(ifu_pc),
                 .data(instMem_data)
             );
+
     RegFile regs(
                 .clk(clk),
                 .rst(rst),
@@ -106,6 +106,7 @@ module CPU (
                 .wAddr(wbu_wAddr),
                 .wData(wbu_wData)
             );
+
     IDU idu(
             .rst(rst),
             .pc(ifu_pc),
@@ -131,6 +132,7 @@ module CPU (
             .regcAddr(idu_regcAddr),
             .rt_data_o(idu_rt_data_o)
         );
+
     EXU exu(
             .rst(rst),
             .regcData(exu_regcData),
@@ -188,26 +190,26 @@ module CPU (
     // output declaration of module DataMem
 
     DataMem data_mem(
-                .clk    	(clk),
-                .ce     	(mem_memCe),
-                .we     	(mem_memWr),
-                .wtData 	(mem_wtData  ),
-                .addr   	(mem_memAddr    ),
-                .memRr  	(mem_memRr   ),
-                .w_mask 	(mem_w_mask  ),
-                .r_mask 	(mem_r_mask  ),
-                .rdData 	(dataMem_rdData) // 读出来的数据
+                .clk(clk),
+                .ce(mem_memCe),
+                .we(mem_memWr),
+                .wtData(mem_wtData),
+                .addr(mem_memAddr),
+                .memRr(mem_memRr),
+                .w_mask(mem_w_mask),
+                .r_mask(mem_r_mask),
+                .rdData(dataMem_rdData) // 读出来的数据
             );
     // output declaration of module WB
 
     WB wb(
-           .rst     	(rst      ),
-           .regWr   	(mem_regWr    ),
-           .regAddr 	(mem_regAddr  ),
-           .regData 	(mem_regData  ),
-           .we      	(wbu_we       ),
-           .wAddr   	(wbu_wAddr   ),
-           .wData   	(wbu_wData    )
+           .rst(rst),
+           .regWr(mem_regWr),
+           .regAddr(mem_regAddr),
+           .regData(mem_regData),
+           .we(wbu_we),
+           .wAddr(wbu_wAddr),
+           .wData(wbu_wData)
        );
 
 endmodule

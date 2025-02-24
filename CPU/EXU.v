@@ -3,14 +3,14 @@
 // 发出跳转信号：跳转地址信号的生成需要 ALU，放在 IDU 是不合理的
 `include "Helpers.v"  // 包含 constants.v 文件
 module EXU (
-        input wire rst,               // 复位信号
+        input wire rst,                     // 复位信号
         // for reg
         output reg [31:0] regcData,         // 寄存器写数据
         output wire [4:0] regcAddr,         // 寄存器写地址
-        output wire regcWr,                   // 寄存器写使能
+        output wire regcWr,                 // 寄存器写使能
 
         // 跳转地址的生成
-        output reg [31:0] jAddr, 	        // 跳转地址
+        output reg [31:0] jAddr,            // 跳转地址
 
         // for mem
         output wire [31:0] memAddr,         // 内存访问地址
@@ -22,19 +22,19 @@ module EXU (
 
 
         // 来自上游的信号
-        input wire [5:0] op_i,    // ALU 功能 (输入信号)
-        input wire [0:0] memWr_i,      // 内存写使能 (输入信号)
-        input wire [0:0] memRr_i,      // 内存读使能 (输入信号)
-        input wire [3:0] w_mask_i,      // w_mask (输入信号)
-        input wire [3:0] r_mask_i,      // r_mask (输入信号)
+        input wire [5:0] op_i,              // ALU 功能 (输入信号)
+        input wire [0:0] memWr_i,           // 内存写使能 (输入信号)
+        input wire [0:0] memRr_i,           // 内存读使能 (输入信号)
+        input wire [3:0] w_mask_i,          // w_mask (输入信号)
+        input wire [3:0] r_mask_i,          // r_mask (输入信号)
 
-        input wire [31:0] regaData_i,         // 源 A 数据
-        input wire [31:0] regbData_i,         // 源 B 数据
-        input wire [0:0] regcWr_i,      // 寄存器写使能 (输入信号)
-        input wire [4:0] regcAddr_i,     // WB 数据地址
-        input wire [31:0] rt_data_i,     // store 指令写入的数据，for MEM
+        input wire [31:0] regaData_i,       // 源 A 数据
+        input wire [31:0] regbData_i,       // 源 B 数据
+        input wire [0:0] regcWr_i,          // 寄存器写使能 (输入信号)
+        input wire [4:0] regcAddr_i,        // WB 数据地址
+        input wire [31:0] rt_data_i,        // store 指令写入的数据，for MEM
 
-        output wire [1:0] is_OK              // 标记程序退出时的状态
+        output wire [1:0] is_OK             // 标记程序退出时的状态
     );
 
     // WB

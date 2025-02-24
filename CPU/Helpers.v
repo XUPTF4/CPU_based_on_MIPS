@@ -1,36 +1,36 @@
 // Helpers.v
 
-`ifndef HELPERS_V  // 防止重复包含的宏定义
+`ifndef HELPERS_V // 防止重复包含的宏定义
 `define HELPERS_V
-        // 符号扩展宏：signExtend(num, n)
-`define signExtend(num, n)  {{(32 - n){num[n-1]}}, num}
-        // 零扩展宏：zeroExtend(num, n)
-`define zeroExtend(num, n)  {{(32 - n){1'b0}}, num}
+// 符号扩展宏：signExtend(num, n)
+`define signExtend(num, n) {{(32 - n){num[n - 1]}}, num}
+// 零扩展宏：zeroExtend(num, n)
+`define zeroExtend(num, n) {{(32 - n){1'b0}}, num}
 
-parameter ALU_X     = 6'b000000;
-parameter ALU_ADD   = 6'b000001;
-parameter ALU_SUB   = 6'b000010;
-parameter ALU_AND   = 6'b000011;
-parameter ALU_OR    = 6'b000100;
-parameter ALU_XOR   = 6'b000101;
-parameter ALU_SLL   = 6'b000110;
-parameter ALU_SRL   = 6'b000111;
-parameter ALU_SRA   = 6'b001000;
+parameter ALU_X    = 6'b000000;
+parameter ALU_ADD  = 6'b000001;
+parameter ALU_SUB  = 6'b000010;
+parameter ALU_AND  = 6'b000011;
+parameter ALU_OR   = 6'b000100;
+parameter ALU_XOR  = 6'b000101;
+parameter ALU_SLL  = 6'b000110;
+parameter ALU_SRL  = 6'b000111;
+parameter ALU_SRA  = 6'b001000;
 parameter ALU_JR   = 6'b001001;
-parameter ALU_ADDI  = 6'b001010;
-parameter ALU_ANDI    = 6'b001011;
-parameter ALU_ORI    = 6'b001100;
-parameter ALU_XORI    = 6'b001101;
+parameter ALU_ADDI = 6'b001010;
+parameter ALU_ANDI = 6'b001011;
+parameter ALU_ORI  = 6'b001100;
+parameter ALU_XORI = 6'b001101;
 
-parameter ALU_LW    = 6'b001110;
-parameter ALU_SW   = 6'b001111;
-parameter ALU_BEQ   = 6'b010000;
-parameter ALU_BNE  = 6'b010001;
-parameter ALU_LUI = 6'b010010;
-parameter ALU_J = 6'b010011;
-parameter ALU_JAL = 6'b010100;
+parameter ALU_LW      = 6'b001110;
+parameter ALU_SW      = 6'b001111;
+parameter ALU_BEQ     = 6'b010000;
+parameter ALU_BNE     = 6'b010001;
+parameter ALU_LUI     = 6'b010010;
+parameter ALU_J       = 6'b010011;
+parameter ALU_JAL     = 6'b010100;
 parameter ALU_SYSCALL = 6'b010101;
-parameter ALU_BREAK = 6'b010110;
+parameter ALU_BREAK   = 6'b010110;
 parameter ALU_UNKNOWN = 6'b010111;
 parameter ALU_BGEZAL =  6'b011000;
 parameter ALU_ADDIU  =  6'b011001;
@@ -46,29 +46,29 @@ parameter FUNCT_SRL  = 6'b000010; // shamt 字段区分
 parameter FUNCT_SRA  = 6'b000011; // shamt 字段区分
 parameter FUNCT_JR   = 6'b001000; // rs 字段区分
 
-parameter FUNCT_ADDI  = 6'b001000;
-parameter FUNCT_ANDI  = 6'b001100;
-parameter FUNCT_ORI   = 6'b001101;
-parameter FUNCT_XORI  = 6'b001110;
-parameter FUNCT_LW  = 6'b100011;
+parameter FUNCT_ADDI = 6'b001000;
+parameter FUNCT_ANDI = 6'b001100;
+parameter FUNCT_ORI  = 6'b001101;
+parameter FUNCT_XORI = 6'b001110;
+parameter FUNCT_LW   = 6'b100011;
 
-parameter OP1_X = 3'b000;
-parameter OP1_RS  = 3'b001; // RS
-parameter OP1_LUI   = 3'b010;  // LUI 服务
-parameter OP1_IM_SA = 3'b011;  // SA 立即数
-parameter OP1_PC = 3'b100;  // PC
-parameter OP1_IMS = 3'b101;  // 立即数符号扩展
-parameter OP1_IMZ = 3'b110;  // 立即数 0 扩展
-parameter OP1_IM = 3'b111;  // 立即数不扩展
+parameter OP1_X     = 3'b000;
+parameter OP1_RS    = 3'b001; // RS
+parameter OP1_LUI   = 3'b010; // LUI 服务
+parameter OP1_IM_SA = 3'b011; // SA 立即数
+parameter OP1_PC    = 3'b100; // PC
+parameter OP1_IMS   = 3'b101; // 立即数符号扩展
+parameter OP1_IMZ   = 3'b110; // 立即数 0 扩展
+parameter OP1_IM    = 3'b111; // 立即数不扩展
 
-parameter OP2_X = 3'b000;
-parameter OP2_ADDRESS  = 3'b001; // 跳转立即数
-parameter OP2_RT   = 3'b010;  // RT
-parameter OP2_IM_4 = 3'b011;  // 自定义立即数，用于 JAL
-parameter OP2_PC = 3'b100;  // PC
-parameter OP2_IMS = 3'b101;  // 立即数符号扩展
-parameter OP2_IMZ = 3'b110;  // 立即数 0 扩展
-parameter OP2_IM_OFFSET_S = 3'b111;  // 立即数 offset 符号扩展
+parameter OP2_X           = 3'b000;
+parameter OP2_ADDRESS     = 3'b001; // 跳转立即数
+parameter OP2_RT          = 3'b010; // RT
+parameter OP2_IM_4        = 3'b011; // 自定义立即数，用于 JAL
+parameter OP2_PC          = 3'b100; // PC
+parameter OP2_IMS         = 3'b101; // 立即数符号扩展
+parameter OP2_IMZ         = 3'b110; // 立即数 0 扩展
+parameter OP2_IM_OFFSET_S = 3'b111; // 立即数 offset 符号扩展
 
 parameter WMEN_X = 1'b0;
 parameter WMEN_S = 1'b1;
@@ -93,7 +93,7 @@ parameter WTYPE_U = 1'b0;
 parameter REN_X = 1'b0;
 parameter REN_S = 1'b1;
 
-parameter WB_X = 2'b00;
+parameter WB_X   = 2'b00;
 parameter WB_MEM = 2'b01; // 来自内存
 parameter WB_ALU = 2'b10; // 来自 ALU
 

@@ -19,7 +19,7 @@ simu: clean
 build: simu
 	bear -- make -C $(OBJ_DIR) -f V$(TOP).mk -j6
 
-run: build
+run:
 	$(EXE)
 
 clean:
@@ -27,12 +27,5 @@ clean:
 
 .PHONY: simu build run
 
-
-
-# MIPS_GCC = mips-linux-gnu-gcc
-
-# test
-
-# test:
 
 

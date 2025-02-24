@@ -41,6 +41,14 @@ void cpu_exec(uint64_t n) {
     // 执行 n 条指令
     while (n) {
         stepi();
+        if(top->rootp->CPU__DOT__idu__DOT__is_break){
+            // 执行结束
+            // 检查 is_OK
+            if(top->rootp->CPU__DOT__exu_is_OK){
+                printf(" HIT bad trap.");
+            }
+            else printf(" HIT good trap.");
+        }
         n--;
     }
     top->final();
@@ -52,9 +60,9 @@ int main(int argc, char* argv[]) {
     top->trace(tfp, 99);
     tfp->open("wave.vcd");
 
-    reset(10);
+    reset(2);
 
-    cpu_exec(200); // 先执行 200 条指令
+    cpu_exec(10000); // 先执行 200 个指令周期
 
     return 0;
 }

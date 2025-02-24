@@ -68,7 +68,7 @@ module IDU (
         is_sll, is_srl, is_sra, is_jr,
         is_addi, is_andi, is_ori, is_xori,
         is_lw, is_sw, is_beq, is_bne,
-        is_lui, is_j, is_jal;
+        is_lui, is_j, is_jal, is_syscall, is_break;
 
 
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
@@ -95,6 +95,7 @@ module IDU (
         is_lui = 1'b0;
         is_j = 1'b0;
         is_jal = 1'b0;
+        is_syscall = 1'b0;
 
         casez (inst[31:0])
             32'b000000_?????_?????_?????_00000_??????: begin
@@ -177,6 +178,11 @@ module IDU (
                     is_jr = 1'b1;
                 end
             end
+            32'b000000_?????_?????_?????_?????_001100:
+                is_syscall = 1'b1;
+
+            32'b000000_?????_?????_?????_?????_001101:
+                is_break = 1'b1;
 
             default: begin
             end
@@ -428,6 +434,27 @@ module IDU (
                 is_jr: begin
                     op = ALU_JR;
                     OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+                is_syscall: begin
+                    op = ALU_SYSCALL;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
+                is_break: begin
+                    op = ALU_BREAK;
+                    OP1_SEL = OP1_X;
                     OP2_SEL = OP2_X;
                     memWr = WMEN_X;
                     memRr = RMEN_X;

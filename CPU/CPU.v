@@ -41,7 +41,7 @@ module CPU (
     wire [3:0] exu_rmask;           // 读掩码
     wire [3:0] exu_wmask;           // 写掩码
 
-    wire [1:0] exu_is_OK;             // 退出状态，之所以定义是因为怕信号不用被优化掉
+    wire [1:0] exu_is_OK;           // 退出状态，之所以定义是因为怕信号不用被优化掉
 
     assign isOK = exu_is_OK;
 

@@ -10,7 +10,7 @@ module EXU (
         output wire regcWr,                 // 寄存器写使能
 
         // 跳转地址的生成
-        output reg [31:0] jAddr, 	        // 跳转地址
+        output reg [31:0] jAddr,            // 跳转地址
 
         // for mem
         output wire [31:0] memAddr,         // 内存访问地址

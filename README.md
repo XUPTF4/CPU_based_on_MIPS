@@ -10,7 +10,7 @@
 
 ### 工具
 
-- verilato: 可以从源码编译，也可以直接通过包管理器进行安装；
+- verilator: 可以从源码编译，也可以直接通过包管理器进行安装；
 - surfer Vscode 插件：用来查看波形图；
 - make、mips-linux-gnu-gcc：通过包管理器安装；
 - bear：配合 clangd 进行代码错误检查。

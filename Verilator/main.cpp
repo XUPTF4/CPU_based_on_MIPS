@@ -3,6 +3,8 @@
 #include "VCPU.h"
 #include "VCPU___024root.h"
 
+#include <sys/time.h>  // 添加头文件
+
 #include "verilated_fst_c.h"
 VerilatedFstC* tfp = new VerilatedFstC;
 
@@ -37,24 +39,42 @@ void stepi() {
     step();
 }
 
+// 执行 CPU
 void cpu_exec(uint64_t n) {
-    // 执行 n 条指令
+    struct timeval start, end;
+    gettimeofday(&start, NULL);  // 记录起始时间
+    double elapsed_time, mips;
+
     while (n) {
-        // printf("PC:0x%08x--->INST:0x%08x\n", top->rootp->CPU__DOT__ifu_pc,
-        //        top->rootp->CPU__DOT__instMem_data);
         stepi();
         if (top->rootp->CPU__DOT__idu__DOT__is_break) {
-            // 执行结束
-            // 检查 is_OK
             if (top->rootp->CPU__DOT__exu_is_OK == 1) {
                 printf("\n\033[31mHIT bad trap!\033[0m\n");
             } else {
                 printf("\n\033[32mHIT good trap!\033[0m\n");
             }
+
+            // 计数器
+            gettimeofday(&end, NULL);
+            elapsed_time = (end.tv_sec - start.tv_sec) +
+                           (end.tv_usec - start.tv_usec) / 1e6;
+            mips = ((uint64_t(-1) - n) / elapsed_time) / 1e6;
+            printf("MIPS: %.6f MIPS\n", mips);
+            break;
         } else if (top->rootp->CPU__DOT__idu__DOT__is_unknown) {
-            printf("\n\033[35munknown instruction----> PC:0x%08x--->INST:0x%08x\033[0m\n",
-                   top->rootp->CPU__DOT__ifu_pc,
-                   top->rootp->CPU__DOT__instMem_data);
+            printf(
+                "\n\033[35munknown instruction----> "
+                "PC:0x%08x--->INST:0x%08x\033[0m\n",
+                top->rootp->CPU__DOT__ifu_pc,
+                top->rootp->CPU__DOT__instMem_data);
+
+            // 计数器
+            gettimeofday(&end, NULL);
+            elapsed_time = (end.tv_sec - start.tv_sec) +
+                           (end.tv_usec - start.tv_usec) / 1e6;
+            mips = ((uint64_t(-1) - n) / elapsed_time) / 1e6;
+            printf("MIPS: %.6f MIPS\n", mips);
+            break;
         }
         n--;
     }
@@ -69,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     reset(5);
 
-    cpu_exec(10000);  // 先执行 200 个指令周期
+    cpu_exec(-1);
 
     return 0;
 }

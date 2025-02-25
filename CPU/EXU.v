@@ -66,6 +66,8 @@ module EXU (
                     alu_out = regaData_i + regbData_i; // SW
                 ALU_JAL:
                     alu_out = regaData_i + regbData_i; // JAL
+                ALU_JALR:
+                    alu_out = regaData_i + regbData_i; // JALR
                 ALU_BGEZAL:
                     alu_out = regaData_i + regbData_i;
 

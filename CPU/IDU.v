@@ -74,10 +74,13 @@ module IDU (
         is_lw, is_sw, is_beq, is_bne,
         is_lui, is_j, is_jal;
 
-    reg is_syscall, is_break, is_unknown;
+    reg is_break, is_unknown;
 
-    reg is_bgezal, is_addiu, is_addu, is_sltiu, is_subu, is_blez, is_slt, is_slti;
+    reg is_bgezal, is_addiu, is_addu, is_sltiu, is_subu, is_blez, is_slti;
 
+    reg is_slt, is_bgtz, is_bltz, is_jalr, is_mult, is_multu, is_div, is_divu, is_mfhi, is_mflo, is_mthi, is_mtlo;
+
+    reg is_ll, is_sc, is_mfc0, is_mtc0, is_eret, is_syscall;
 
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
 
@@ -103,18 +106,40 @@ module IDU (
         is_lui = 1'b0;
         is_j = 1'b0;
         is_jal = 1'b0;
+
         is_syscall = 1'b0;
         is_break = 1'b0;
         is_unknown = 1'b0;
+
         is_bgezal = 1'b0;
         is_addiu = 1'b0;
         is_addu = 1'b0;
         is_sltiu = 1'b0;
         is_subu = 1'b0;
-
         is_blez = 1'b0;
         is_slt = 1'b0;
         is_slti = 1'b0;
+
+        is_bgtz = 1'b0;
+        is_bltz = 1'b0;
+        is_jalr = 1'b0;
+        is_mult = 1'b0;
+        is_multu = 1'b0;
+        is_div = 1'b0;
+        is_divu = 1'b0;
+        is_mfhi = 1'b0;
+        is_mflo = 1'b0;
+        is_mthi = 1'b0;
+        is_mtlo = 1'b0;
+
+        is_ll = 1'b0;
+        is_sc = 1'b0;
+        is_mfc0 = 1'b0;
+        is_mtc0 = 1'b0;
+        is_eret = 1'b0;
+
+
+
 
         casez (inst[31:0])
             32'b000000_?????_?????_?????_00000_100000: begin
@@ -194,11 +219,7 @@ module IDU (
             32'b000001_?????_10001_?????_?????_??????:begin
                 regcAddr = 5'd31; // jal 需要回写到 31 号寄存器
                 is_bgezal = 1'b1; // bgezal
-
             end
-
-
-
 
             32'b001111_00000_?????_?????_?????_??????: begin
                 regcAddr = rt_addr;
@@ -211,6 +232,10 @@ module IDU (
             32'b000011_?????_?????_?????_?????_??????: begin
                 regcAddr = 5'd31; // jal 需要回写到 31 号寄存器
                 is_jal = 1'b1; // jal
+            end
+            32'b000000_?????_00000_?????_00000_001001: begin
+                regcAddr = rd_addr;
+                is_jalr = 1'b1; // jalr
             end
 
             32'b000000_?????_00000_00000_00000_001000:
@@ -232,9 +257,44 @@ module IDU (
                 regcAddr = rt_addr;
                 is_slti = 1'b1;
             end
-
             32'b000110_?????_00000_?????_?????_??????:
                 is_blez = 1'b1;
+            32'b000111_?????_00000_?????_?????_??????:
+                is_bgtz = 1'b1;
+            32'b000001_?????_00000_?????_?????_??????:
+                is_bltz = 1'b1;
+
+            // 乘除指令：需要实现 HiLo 寄存器
+            32'b000000_?????_?????_00000_00000_011000:
+                is_mult = 1'b1;
+            32'b000000_?????_?????_00000_00000_011001:
+                is_multu = 1'b1;
+            32'b000000_?????_?????_00000_00000_011010:
+                is_div = 1'b1;
+            32'b000000_?????_?????_00000_00000_011011:
+                is_divu = 1'b1;
+            32'b000000_00000_00000_?????_?????_010000:
+                is_mfhi = 1'b1;
+            32'b000000_00000_00000_00000_?????_010010:
+                is_mflo = 1'b1;
+            32'b000000_?????_00000_00000_00000_010001:
+                is_mthi = 1'b1;
+            32'b000000_?????_00000_00000_00000_010011:
+                is_mtlo = 1'b1;
+            32'b110000_?????_?????_?????_?????_??????:
+
+
+                is_ll = 1'b1;
+            32'b111000_?????_?????_?????_?????_??????:
+                is_sc = 1'b1;
+            32'b010000_00000_?????_?????_?????_??????:
+                is_mfc0 = 1'b1;
+            32'b010000_?????_00000_?????_?????_??????:
+                is_mtc0 = 1'b1;
+            32'b010000_00000_00000_00000_00000_011000:
+                is_eret = 1'b1;
+
+
 
             default: begin
                 is_unknown = 1'b1; // 未实现的指令
@@ -507,6 +567,28 @@ module IDU (
                     r_mask = RMASK_X;
                 end
 
+                is_bgtz: begin
+                    op = ALU_BGTZ;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
+                is_bltz: begin
+                    op = ALU_BLTZ;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
                 is_lui: begin
                     op = ALU_LUI;
                     OP1_SEL = OP1_LUI;
@@ -530,12 +612,24 @@ module IDU (
                 end
 
                 is_jal: begin
-                    op = ALU_JAL; // 这里可以将其当成加法
+                    op = ALU_JAL;
                     OP1_SEL = OP1_PC;
                     OP2_SEL = OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
                     memWr = WMEN_X;
                     memRr = RMEN_X;
-                    regcWr = REN_S; // jal 需要回写寄存器，可以将其放在 alu_out,
+                    regcWr = REN_S;     // jal 需要回写寄存器
+
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
+                is_jalr: begin
+                    op = ALU_JALR;
+                    OP1_SEL = OP1_PC;
+                    OP2_SEL = OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S; // jalr 需要回写寄存器，可以将其放在 alu_out,
 
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
@@ -683,9 +777,15 @@ module IDU (
                 jCe = (regaData_i[31] == 1'b0); // 符号位如果为 0，就是非负，那么一定大于等于 0
             ALU_BLEZ:
                 jCe = (regaData_i[31] == 1'b1 || regaData_i == 32'd0); // 小于等于 0 跳转
+            ALU_BGTZ:
+                jCe = (regaData_i[31] == 1'b0 || regaData_i != 32'd0); // 大于 0 跳转
+            ALU_BLTZ:
+                jCe = (regaData_i[31] == 1'b1); // 小于 0 跳转
             ALU_J:
                 jCe = 1'b1;
             ALU_JAL:
+                jCe = 1'b1;
+            ALU_JALR:
                 jCe = 1'b1;
             ALU_JR:
                 jCe = 1'b1;
@@ -704,9 +804,11 @@ module IDU (
                 ALU_J:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
                 ALU_JR:
-                    jAddr = regaData_i;
+                    jAddr = regaData_i; // rs 中的数据
                 ALU_JAL:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
+                ALU_JALR:
+                    jAddr = regaData_i; // rs 中的数据
                 ALU_BEQ:
                     jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
                 ALU_BNE:
@@ -714,6 +816,10 @@ module IDU (
                 ALU_BGEZAL:
                     jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
                 ALU_BLEZ:
+                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
+                ALU_BGTZ:
+                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
+                ALU_BLTZ:
                     jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
                 default:
                     jAddr = 32'b0;

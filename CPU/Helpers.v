@@ -39,6 +39,23 @@ parameter ALU_BLEZ    = 6'b011011;
 parameter ALU_SLT     = 6'b011100;
 parameter ALU_SLTI    = 6'b011101;
 
+parameter ALU_BGTZ    = 6'b011110;
+parameter ALU_BLTZ    = 6'b011111;
+parameter ALU_JALR    = 6'b100000;
+parameter ALU_MULT    = 6'b100001;
+parameter ALU_MULTU   = 6'b100010;
+parameter ALU_DIV     = 6'b100011;
+parameter ALU_DIVU    = 6'b100100;
+parameter ALU_MFHI    = 6'b100101;
+parameter ALU_MFLO    = 6'b100110;
+parameter ALU_MTHI    = 6'b100111;
+parameter ALU_MTLO    = 6'b101000;
+parameter ALU_LL      = 6'b101001;
+parameter ALU_SC      = 6'b101010;
+parameter ALU_MFC0    = 6'b101011;
+parameter ALU_MTC0    = 6'b101100;
+parameter ALU_ERET    = 6'b101101;
+
 //
 parameter FUNCT_ADD  = 6'b100000;
 parameter FUNCT_SUB  = 6'b100010;

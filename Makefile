@@ -1,4 +1,4 @@
-CPU_HOME = .
+CPU_HOME = $(shell pwd)
 VSRC = $(CPU_HOME)/CPU/*.v
 
 SV_SRC = $(CPU_HOME)/CPU

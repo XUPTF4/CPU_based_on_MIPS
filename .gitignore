@@ -1,6 +1,6 @@
 # 忽略编译生成的文件
-compile_commands.json
+compile_commands.**
 .cache
-wave.vcd
+wave.**
 obj_dir
-test_bench/cpu_test/build
+**/build

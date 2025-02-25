@@ -1,21 +1,18 @@
 # CPU_based_on_MIPS
 
-基于MIPS指令集的32位模型机设计与FPGA实现
+基于 MIPS 指令集的 32 位模型机设计与 FPGA 实现
 
-## 〇、如何启动这个精彩的项目？
+## 项目运行指南
 
 ### 环境
 
-任一 Linux 平台，比如：Ubuntu 22.4。
+- 系统：Linux 平台，如 Ubuntu 22.4。
+- Verilator: 可以从源码编译，也可以直接通过包管理器进行安装
+- Surfer (VSCode 插件)：用来查看波形图
+- bear：配合 clangd 进行代码错误检查
+- 需要安装的软件包有：`make` `bear` `mips-linux-gnu-gcc`(`gcc-mips-linux-gnu`)
 
-### 工具
-
-- Verilator: 可以从源码编译，也可以直接通过包管理器进行安装；
-- Surfer VSCode 插件：用来查看波形图；
-- make、mips-linux-gnu-gcc：通过包管理器安装；
-- bear：配合 clangd 进行代码错误检查。
-
-### 项目的工作原理
+### 工作原理
 
 #### CPU
 
@@ -27,21 +24,16 @@
 
 #### Verilator
 
+> - [Verilator 使用指南 - USTC CECS 2023](https://soc.ustc.edu.cn/CECS/lab2/verilator/)
+
 这是利用 Verilator 将 CPU 中的所有 Verilog 代码仿真成 C++ 类库，然后在 `main.cpp` 中就可以利用这些库进行操控、监视、CPU 的行为等等，从而进行仿真，这也是 Verilator 的工作原理。它比 Vivado 等工具快几乎 100 倍，效率非常高。
 
-#### 启动一个例子
+### 启动一个例子
 
-直接在 Makefile 中所在的目录中，直接：
-
-```bash
-make run
-```
+在 Makefile 中所在的目录中运行 `make run` 即可。
 
 之后就能看到多了一个 `wave.vcd` 文件。通过 surfer 插件打开，就能看到波形图了。目前为止，CPU 已经能识别所有已经实现的指令了。你可以自由探索 surfer 的各种用法。
 
-### 参考文档
-
-- [Verilator 使用指南 - USTC CECS 2023](https://soc.ustc.edu.cn/CECS/lab2/verilator/)
 
 ## 课设要求
 

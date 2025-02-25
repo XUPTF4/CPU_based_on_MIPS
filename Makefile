@@ -1,4 +1,4 @@
-CPU_HOME = /home/luyoung/CPU_based_on_MIPS
+CPU_HOME = $(shell pwd)
 VSRC = $(CPU_HOME)/CPU/*.v
 
 SV_SRC = $(CPU_HOME)/CPU

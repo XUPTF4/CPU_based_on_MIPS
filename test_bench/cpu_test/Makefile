@@ -11,7 +11,7 @@ HEXDUMP = hexdump
 OBJDUMP = mips-linux-gnu-objdump
 
 # 文件路径设置
-CPU_HOME = /home/luyoung/CPU_based_on_MIPS
+CPU_HOME = $(shell pwd)/../..
 CSRC = $(wildcard $(CPU_HOME)/test_bench/am/*.c)
 ASM_SRC = $(CPU_HOME)/test_bench/am/start.S
 

@@ -87,6 +87,10 @@ module EXU (
                     alu_out = regaData_i;
                 ALU_SLTIU:
                     alu_out = regaData_i < regbData_i ? 32'b1 : 32'b0;
+                ALU_SLT:
+                    alu_out = regaData_i < regbData_i ? 32'b1 : 32'b0;
+                ALU_SLTI:
+                    alu_out = regaData_i < regbData_i ? 32'b1 : 32'b0;
                 default:
                     alu_out = 32'b0;
             endcase

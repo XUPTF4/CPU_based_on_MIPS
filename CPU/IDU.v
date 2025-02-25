@@ -76,7 +76,7 @@ module IDU (
 
     reg is_syscall, is_break, is_unknown;
 
-    reg is_bgezal, is_addiu, is_addu, is_sltiu, is_subu;
+    reg is_bgezal, is_addiu, is_addu, is_sltiu, is_subu, is_blez, is_slt, is_slti;
 
 
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
@@ -111,6 +111,10 @@ module IDU (
         is_addu = 1'b0;
         is_sltiu = 1'b0;
         is_subu = 1'b0;
+
+        is_blez = 1'b0;
+        is_slt = 1'b0;
+        is_slti = 1'b0;
 
         casez (inst[31:0])
             32'b000000_?????_?????_?????_00000_100000: begin
@@ -216,10 +220,21 @@ module IDU (
             32'b000000_?????_?????_?????_?????_001101:
                 is_break = 1'b1;
 
+            32'b000000_?????_?????_?????_00000_101010:begin
+                regcAddr = rd_addr;
+                is_slt = 1'b1;
+            end
             32'b001011_?????_?????_?????_?????_??????:begin
                 regcAddr = rt_addr;
                 is_sltiu = 1'b1;
             end
+            32'b001010_?????_?????_?????_?????_??????:begin
+                regcAddr = rt_addr;
+                is_slti = 1'b1;
+            end
+
+            32'b000110_?????_00000_?????_?????_??????:
+                is_blez = 1'b1;
 
             default: begin
                 is_unknown = 1'b1; // 未实现的指令
@@ -481,6 +496,17 @@ module IDU (
                     r_mask = RMASK_X;
                 end
 
+                is_blez: begin
+                    op = ALU_BLEZ;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
                 is_lui: begin
                     op = ALU_LUI;
                     OP1_SEL = OP1_LUI;
@@ -558,6 +584,28 @@ module IDU (
                     r_mask = RMASK_X;
                 end
 
+                is_slt: begin
+                    op = ALU_SLT;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
+                is_slti: begin
+                    op = ALU_SLTI;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_IMS; // 有符号扩展
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
                 is_unknown: begin
                     op = ALU_UNKNOWN;
                     OP1_SEL = OP1_X;
@@ -612,10 +660,8 @@ module IDU (
                 regbData = u_imm; // 0 扩展
             OP2_ADDRESS:
                 regbData = u_address; // 0 扩展
-            // OP2_IM_8:
-            //     regbData = 32'd8; // BGEZAL
             OP2_IM_4:
-                regbData = 32'd4; // JAL
+                regbData = 32'd4; // JAL, BGEZAL
             OP2_IM_OFFSET_S:
                 regbData = s_offset; // LW,SW
             OP2_PC:
@@ -635,6 +681,8 @@ module IDU (
                 jCe = (regaData_i != regbData_i);
             ALU_BGEZAL:
                 jCe = (regaData_i[31] == 1'b0); // 符号位如果为 0，就是非负，那么一定大于等于 0
+            ALU_BLEZ:
+                jCe = (regaData_i[31] == 1'b1 || regaData_i == 32'd0); // 小于等于 0 跳转
             ALU_J:
                 jCe = 1'b1;
             ALU_JAL:
@@ -664,6 +712,8 @@ module IDU (
                 ALU_BNE:
                     jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
                 ALU_BGEZAL:
+                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
+                ALU_BLEZ:
                     jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
                 default:
                     jAddr = 32'b0;

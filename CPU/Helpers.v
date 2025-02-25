@@ -34,6 +34,8 @@ parameter ALU_BREAK   = 6'b010110;
 parameter ALU_UNKNOWN = 6'b010111;
 parameter ALU_BGEZAL  = 6'b011000;
 parameter ALU_ADDIU   = 6'b011001;
+parameter ALU_SLTIU   = 6'b011010;
+
 
 //
 parameter FUNCT_ADD  = 6'b100000;

@@ -24,7 +24,8 @@ ASM_FILE = $(BUILD_DIR)/$(ALL)_mips.txt
 
 LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld -z noexecstack -Ttext=0x00000000
 
-C_FLAGS = -O2 -MMD -Wall -Werror -fno-asynchronous-unwind-tables -fno-builtin -fno-stack-protector \
+# 一定要关闭编译优化，不然看波形看不懂
+C_FLAGS = -O0 -MMD -Wall -Werror -fno-asynchronous-unwind-tables -fno-builtin -fno-stack-protector \
             -Wno-main -U_FORTIFY_SOURCE -fvisibility=hidden
 
 AS_FLAGS = -MMD $(INCFLAGS)

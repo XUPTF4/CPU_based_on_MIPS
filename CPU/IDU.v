@@ -76,7 +76,7 @@ module IDU (
 
     reg is_syscall, is_break, is_unknown;
 
-    reg is_bgezal, is_addiu;
+    reg is_bgezal, is_addiu, is_addu, is_sltiu, is_subu;
 
 
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
@@ -108,15 +108,26 @@ module IDU (
         is_unknown = 1'b0;
         is_bgezal = 1'b0;
         is_addiu = 1'b0;
+        is_addu = 1'b0;
+        is_sltiu = 1'b0;
+        is_subu = 1'b0;
 
         casez (inst[31:0])
             32'b000000_?????_?????_?????_00000_100000: begin
                 regcAddr = rd_addr;
                 is_add = 1'b1;
             end
+            32'b000000_?????_?????_?????_00000_100001: begin
+                regcAddr = rd_addr;
+                is_addu = 1'b1;
+            end
             32'b000000_?????_?????_?????_00000_100010: begin
                 regcAddr = rd_addr;
                 is_sub = 1'b1;
+            end
+            32'b000000_?????_?????_?????_00000_100011: begin
+                regcAddr = rd_addr;
+                is_subu = 1'b1;
             end
             32'b000000_?????_?????_?????_00000_100100: begin
                 regcAddr = rd_addr;
@@ -205,8 +216,10 @@ module IDU (
             32'b000000_?????_?????_?????_?????_001101:
                 is_break = 1'b1;
 
-
-
+            32'b001011_?????_?????_?????_?????_??????:begin
+                regcAddr = rt_addr;
+                is_sltiu = 1'b1;
+            end
 
             default: begin
                 is_unknown = 1'b1; // 未实现的指令
@@ -251,6 +264,19 @@ module IDU (
                     regcAddr = rd_addr;
 
                 end
+                is_addu: begin
+                    op = ALU_ADD;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+
+                    regcAddr = rd_addr;
+
+                end
                 is_sub: begin
                     op = ALU_SUB;
                     OP1_SEL = OP1_RS;
@@ -260,9 +286,19 @@ module IDU (
                     regcWr = REN_S;
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
-
-
                 end
+
+                is_subu: begin
+                    op = ALU_SUB;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
                 is_and: begin
                     op = ALU_AND;
                     OP1_SEL = OP1_RS;
@@ -437,7 +473,7 @@ module IDU (
                 is_bgezal: begin
                     op = ALU_BGEZAL;
                     OP1_SEL = OP1_PC;
-                    OP2_SEL = OP2_IM_8;
+                    OP2_SEL = OP2_IM_4;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
                     regcWr = REN_S;
@@ -511,6 +547,17 @@ module IDU (
                     r_mask = RMASK_X;
                 end
 
+                is_sltiu: begin
+                    op = ALU_SLTIU;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_IMS; // 有符号扩展
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
                 is_unknown: begin
                     op = ALU_UNKNOWN;
                     OP1_SEL = OP1_X;
@@ -531,7 +578,6 @@ module IDU (
                     regcWr = REN_X;
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
-
                 end
             endcase
         end
@@ -566,8 +612,8 @@ module IDU (
                 regbData = u_imm; // 0 扩展
             OP2_ADDRESS:
                 regbData = u_address; // 0 扩展
-            OP2_IM_8:
-                regbData = 32'd8; // BGEZAL
+            // OP2_IM_8:
+            //     regbData = 32'd8; // BGEZAL
             OP2_IM_4:
                 regbData = 32'd4; // JAL
             OP2_IM_OFFSET_S:

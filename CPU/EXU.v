@@ -85,6 +85,8 @@ module EXU (
                     alu_out = regbData_i >>> regaData_i; // 数学右移
                 ALU_LUI:
                     alu_out = regaData_i;
+                ALU_SLTIU:
+                    alu_out = regaData_i < regbData_i ? 32'b1 : 32'b0;
                 default:
                     alu_out = 32'b0;
             endcase

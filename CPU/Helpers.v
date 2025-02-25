@@ -65,10 +65,14 @@ parameter OP2_X           = 3'b000;
 parameter OP2_ADDRESS     = 3'b001; // 跳转立即数
 parameter OP2_RT          = 3'b010; // RT
 parameter OP2_IM_8        = 3'b011; // 自定义立即数，用于 JAL
+parameter OP2_IM_4        = 3'b000; // 自定义立即数，用于 JAL 借用 OP2_X
 parameter OP2_PC          = 3'b100; // PC
 parameter OP2_IMS         = 3'b101; // 立即数符号扩展
 parameter OP2_IMZ         = 3'b110; // 立即数 0 扩展
 parameter OP2_IM_OFFSET_S = 3'b111; // 立即数 offset 符号扩展
+
+
+
 
 parameter WMEN_X = 1'b0;
 parameter WMEN_S = 1'b1;

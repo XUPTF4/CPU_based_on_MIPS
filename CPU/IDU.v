@@ -349,7 +349,7 @@ module IDU (
                 is_addiu: begin
                     op = ALU_ADD;
                     OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMZ; // 符号扩展
+                    OP2_SEL = OP2_IMS;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
                     regcWr = REN_S;
@@ -396,7 +396,7 @@ module IDU (
                     OP2_SEL = OP2_IM_OFFSET_S; // 立即数 offset 符号扩展
                     memWr = WMEN_X;
                     memRr = RMEN_S; // 读内存
-                    regcWr = REN_X;
+                    regcWr = REN_S; // 读完了要回写
                     w_mask = WMASK_X;
                     r_mask = RMASK_C; // 读取 4 字节
                 end
@@ -406,7 +406,7 @@ module IDU (
                     OP2_SEL = OP2_IM_OFFSET_S;  // 立即数 offset 符号扩展
                     memWr = WMEN_S; // 写内存
                     memRr = RMEN_X;
-                    regcWr = REN_X;
+                    regcWr = REN_X;  // 写内存不需要回写
                     w_mask = WMASK_C; // 存入 4 字节
                     r_mask = RMASK_X;
                 end
@@ -470,7 +470,7 @@ module IDU (
                 is_jal: begin
                     op = ALU_JAL; // 这里可以将其当成加法
                     OP1_SEL = OP1_PC;
-                    OP2_SEL = OP2_IM_8;
+                    OP2_SEL = OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
                     memWr = WMEN_X;
                     memRr = RMEN_X;
                     regcWr = REN_S; // jal 需要回写寄存器，可以将其放在 alu_out,
@@ -567,7 +567,9 @@ module IDU (
             OP2_ADDRESS:
                 regbData = u_address; // 0 扩展
             OP2_IM_8:
-                regbData = 32'd8; // JAL
+                regbData = 32'd8; // BGEZAL
+            OP2_IM_4:
+                regbData = 32'd4; // JAL
             OP2_IM_OFFSET_S:
                 regbData = s_offset; // LW,SW
             OP2_PC:
@@ -608,7 +610,7 @@ module IDU (
                 ALU_J:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
                 ALU_JR:
-                    jAddr = regbData_i;
+                    jAddr = regaData_i;
                 ALU_JAL:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
                 ALU_BEQ:

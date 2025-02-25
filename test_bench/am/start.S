@@ -4,5 +4,5 @@
 
 _start:
   move $fp, $zero
-  la $sp, _stack_pointer
+  la $sp, 0x1000
   jal _trm_init

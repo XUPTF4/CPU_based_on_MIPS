@@ -75,6 +75,13 @@ $(BUILD_DIR)/$(ALL).o: $(C_FILE) $(ASM_SRC)
 		echo "$(ASM_FILE) not found."; \
 	fi
 
+	@ echo "Converts a hex file (.hex) to a Verilog memory initialization file (.v)."
+    # 这里调用 python 脚本将 .hex 文件转换为 .v 文件
+
+	@python3 /home/luyoung/CPU_based_on_MIPS/scripts/build_instMemo.py $(BUILD_DIR)/$(ALL).hex /home/luyoung/CPU_based_on_MIPS/CPU/InstMem.v
+
+	@echo "Build done."
+
 build: $(BUILD_DIR)/$(ALL).o
 
 clean:

@@ -47,12 +47,12 @@ void cpu_exec(uint64_t n) {
             // 执行结束
             // 检查 is_OK
             if (top->rootp->CPU__DOT__exu_is_OK == 1) {
-                printf(" HIT bad trap.");
+                printf("\n\033[31mHIT bad trap!\033[0m\n");
             } else {
-                printf(" HIT good trap.");
+                printf("\n\033[32mHIT good trap!\033[0m\n");
             }
         } else if (top->rootp->CPU__DOT__idu__DOT__is_unknown) {
-            printf("unknown instruction----> PC:0x%08x--->INST:0x%08x\n",
+            printf("\n\033[35munknown instruction----> PC:0x%08x--->INST:0x%08x\033[0m\n",
                    top->rootp->CPU__DOT__ifu_pc,
                    top->rootp->CPU__DOT__instMem_data);
         }
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 
     reset(5);
 
-    cpu_exec(50);  // 先执行 200 个指令周期
+    cpu_exec(10000);  // 先执行 200 个指令周期
 
     return 0;
 }

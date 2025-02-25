@@ -1,8 +1,8 @@
 ENTRY(_start)
 
 MEMORY {
-  rom(rx) : ORIGIN = 0x00000000, LENGTH = 4K  # ROM 起始地址和大小
-  ram(rw) : ORIGIN = 0x00000000, LENGTH = 4K  # RAM 起始地址和大小
+  rom(rx) : ORIGIN = 0x00000000, LENGTH = 4K  # ROM 起始地址
+  ram(rw) : ORIGIN = 0x00000000, LENGTH = 4K  # RAM 起始地址设为高位
 }
 
 SECTIONS {
@@ -38,5 +38,5 @@ SECTIONS {
   # 堆和栈分配
   _heap_start = 0x00000100;  # 堆的起始地址
   _heap_end = ORIGIN(ram) + LENGTH(ram);  # 堆的结束地址
-  _stack_pointer = _heap_end;  # 栈指针设置为堆的结束地址
+  _stack_pointer = 0x1000;  # 栈起始地址
 }

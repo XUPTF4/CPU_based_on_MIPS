@@ -12,7 +12,9 @@ module CPU (
     // IDU
     wire [31:0] idu_regaData;       // 操作数 a
     wire [31:0] idu_regbData;       // 操作数 b
+
     wire idu_jCe;                   // 跳转使能
+    wire [31:0] idu_jAddr;          // 跳转地址
     wire idu_regaRd;                // 读使能 a
     wire [4:0] idu_regaAddr;        // 读地址 a
     wire idu_regbRd;                // 读使能 b
@@ -32,7 +34,7 @@ module CPU (
     wire [4:0] exu_regcAddr;        // 寄存器写地址
     wire exu_regcWr;                // 寄存器写使能
 
-    wire [31:0] exu_jAddr;          // 跳转地址
+
 
     wire [31:0] exu_memAddr;        // 内存访问地址
     wire [31:0] exu_memData;        // 内存写数据
@@ -77,7 +79,7 @@ module CPU (
     IFU ifu(
             .clk(clk),
             .rst(rst),
-            .jAddr(exu_jAddr),
+            .jAddr(idu_jAddr),
             .jCe(idu_jCe),
             .pc(ifu_pc),
             .romCe(ifu_romCe)
@@ -117,6 +119,7 @@ module CPU (
             .regbData(idu_regbData),
 
             .jCe(idu_jCe),
+            .jAddr(idu_jAddr),
 
             .regaRd(idu_regaRd),
             .regaAddr(idu_regaAddr),
@@ -138,7 +141,6 @@ module CPU (
             .regcData(exu_regcData),
             .regcAddr(exu_regcAddr),
             .regcWr(exu_regcWr),
-            .jAddr(exu_jAddr),
             .memAddr(exu_memAddr),
             .memData(exu_memData),
             .readWr(exu_readWr),

@@ -9,9 +9,6 @@ module EXU (
         output wire [4:0] regcAddr,         // 寄存器写地址
         output wire regcWr,                 // 寄存器写使能
 
-        // 跳转地址的生成
-        output reg [31:0] jAddr,            // 跳转地址
-
         // for mem
         output wire [31:0] memAddr,         // 内存访问地址
         output wire [31:0] memData,         // 内存写数据
@@ -42,9 +39,6 @@ module EXU (
     assign regcAddr = regcAddr_i;
     assign regcWr = rst ? 1'b0 : regcWr_i;
 
-    // 跳转地址
-    assign jAddr = 32'd0;
-
     // 内存信号
     assign memAddr = alu_out; // 如果是 load：OK；如果是 store：
     assign memData = rt_data_i; // 那也 OK
@@ -72,12 +66,9 @@ module EXU (
                     alu_out = regaData_i + regbData_i; // SW
                 ALU_JAL:
                     alu_out = regaData_i + regbData_i; // JAL
-                ALU_BEQ:
-                    alu_out = (regaData_i << 2) + regbData_i;
-                ALU_BNE:
-                    alu_out = (regaData_i << 2) + regbData_i;
                 ALU_BGEZAL:
-                    alu_out = (regaData_i << 2) + regbData_i;
+                    alu_out = regaData_i + regbData_i;
+
                 ALU_SUB:
                     alu_out = regaData_i - regbData_i;
                 ALU_AND:
@@ -100,30 +91,6 @@ module EXU (
         end
     end
 
-
-    always @(*) begin
-        if (rst) begin
-            jAddr = 32'b0;
-        end
-        else begin
-            case ( op_i)
-                ALU_J:
-                    jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
-                ALU_JR:
-                    jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
-                ALU_JAL:
-                    jAddr = {regaData_i[31:28],regbData_i[25:0],2'b00};
-                ALU_BEQ:
-                    jAddr = alu_out; // 直接连接 alu_out
-                ALU_BNE:
-                    jAddr = alu_out; // 直接连接 alu_out
-                ALU_BGEZAL:
-                    jAddr = alu_out; // 直接连接 alu_out
-                default:
-                    jAddr = 32'b0;
-            endcase
-        end
-    end
     always @(*) begin
         case (op_i)
             ALU_SYSCALL:

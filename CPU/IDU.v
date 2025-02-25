@@ -11,6 +11,7 @@ module IDU (
 
         // 跳转使能由 IDU 生成，跳转地址由 EXU 生成
         output reg jCe,                 // 跳转使能
+        output reg [31:0] jAddr,            // 跳转地址
 
         // 连接 RegFile
         output wire  regaRd,            // 读使能
@@ -32,6 +33,9 @@ module IDU (
     // 提取指令字段
     assign jCe = 1'b0; // 默认不跳转
 
+    // 延迟槽
+    wire [31:0] pc_plus_4;
+    assign pc_plus_4 = pc + 32'd4;
 
     // wire [5:0] funct = inst[5:0];
     // wire [5:0] opcode = inst[31:26];
@@ -172,8 +176,12 @@ module IDU (
                 is_beq  = 1'b1; // beq
             32'b000101_?????_?????_?????_?????_??????:
                 is_bne  = 1'b1; // bne
-            32'b000001_?????_10001_?????_?????_??????:
+            32'b000001_?????_10001_?????_?????_??????:begin
+                regcAddr = 5'd31; // jal 需要回写到 31 号寄存器
                 is_bgezal = 1'b1; // bgezal
+
+            end
+
 
 
 
@@ -211,8 +219,10 @@ module IDU (
     // 需要产生的信号
     // 一共 38 条指令，因此这里需要 6 位来 标记功能
 
-    reg [2:0] OP1_SEL;  // 第一操作数来源
-    reg [2:0] OP2_SEL;  // 第二操作数来源
+    reg [2:
+         0] OP1_SEL;  // 第一操作数来源
+    reg [2:
+         0] OP2_SEL;  // 第二操作数来源
 
     always @(*) begin
         if (rst) begin
@@ -403,11 +413,11 @@ module IDU (
                 // 这里比较复杂
                 is_beq: begin
                     op = ALU_BEQ;
-                    OP1_SEL = OP1_IMS;
-                    OP2_SEL = OP2_PC;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
-                    regcWr = REN_X; // PC 不是普通寄存器，可以直接在 EXU 中改写
+                    regcWr = REN_X;
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
 
@@ -415,8 +425,8 @@ module IDU (
                 end
                 is_bne: begin
                     op = ALU_BNE;
-                    OP1_SEL = OP1_IMS; // 等价于符号扩展的 offset
-                    OP2_SEL = OP2_PC;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
                     regcWr = REN_X;
@@ -426,11 +436,11 @@ module IDU (
 
                 is_bgezal: begin
                     op = ALU_BGEZAL;
-                    OP1_SEL = OP1_IMS; // 等价于符号扩展的 offset
-                    OP2_SEL = OP2_PC;
+                    OP1_SEL = OP1_PC;
+                    OP2_SEL = OP2_IM_8;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
-                    regcWr = REN_X;
+                    regcWr = REN_S;
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
                 end
@@ -448,8 +458,8 @@ module IDU (
                 end
                 is_j: begin
                     op = ALU_J;
-                    OP1_SEL = OP1_PC;
-                    OP2_SEL = OP2_ADDRESS;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
                     regcWr = REN_X;
@@ -457,11 +467,10 @@ module IDU (
                     r_mask = RMASK_X;
                 end
 
-                // 并保存 PC
                 is_jal: begin
                     op = ALU_JAL; // 这里可以将其当成加法
                     OP1_SEL = OP1_PC;
-                    OP2_SEL = OP2_IM_4;
+                    OP2_SEL = OP2_IM_8;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
                     regcWr = REN_S; // jal 需要回写寄存器，可以将其放在 alu_out,
@@ -472,7 +481,7 @@ module IDU (
 
                 is_jr: begin
                     op = ALU_JR;
-                    OP1_SEL = OP1_RS;
+                    OP1_SEL = OP1_X;
                     OP2_SEL = OP2_X;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
@@ -540,6 +549,8 @@ module IDU (
                 regaData = s_imm; // BEQ,BNE, 相当于符号扩展的 offset
             OP1_LUI:
                 regaData = u_imm << 16; // 高 16 位放入 rt
+            OP1_PC:
+                regaData = pc;
             default:
                 regaData = 0;
         endcase
@@ -555,8 +566,8 @@ module IDU (
                 regbData = u_imm; // 0 扩展
             OP2_ADDRESS:
                 regbData = u_address; // 0 扩展
-            OP2_IM_4:
-                regbData = 32'd4; // JAL
+            OP2_IM_8:
+                regbData = 32'd8; // JAL
             OP2_IM_OFFSET_S:
                 regbData = s_offset; // LW,SW
             OP2_PC:
@@ -585,6 +596,31 @@ module IDU (
             default:
                 jCe = 1'b0;
         endcase
+    end
+
+    // 考虑到性能以及设计需求，现在需要将跳转地址的生成放在 IDU 中
+    always @(*) begin
+        if (rst) begin
+            jAddr = 32'b0;
+        end
+        else begin
+            case ( op)
+                ALU_J:
+                    jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
+                ALU_JR:
+                    jAddr = regbData_i;
+                ALU_JAL:
+                    jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
+                ALU_BEQ:
+                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
+                ALU_BNE:
+                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
+                ALU_BGEZAL:
+                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
+                default:
+                    jAddr = 32'b0;
+            endcase
+        end
     end
 
 

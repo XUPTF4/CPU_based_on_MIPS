@@ -31,7 +31,7 @@ LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld
 # 这里直接使用 mips1 架构 来测试 mult 指令、mulu 指令、div 指令、divu 指令、mflo 指令、mfhi 指令，但是不支持 mtlo、mthi 指令
 # mips2 架构支持 mtlo、mthi 指令，但是目前会让程序执行出错，仔细检查了原因，由于 t9 寄存器为 0，因此会跳转到 0 地址，导致程序执行出错
 C_FLAGS = -O0 -MMD -Wall -Werror -march=mips1 -mfp32 -fno-asynchronous-unwind-tables \
-        -fno-builtin -fno-stack-protector -Wno-main -nostdlib
+        -ffreestanding -fno-builtin -fno-stack-protector -Wno-main -nostdlib -nodefaultlibs
 
 AS_FLAGS = -MMD $(INCFLAGS)
 
@@ -66,8 +66,14 @@ $(BUILD_DIR)/$(ALL).o: $(C_FILE) $(ASM_SRC)
 # 使用 objcopy 提取 .text 段并生成二进制文件
 	@$(OBJCOPY) -O binary -j .text $(BUILD_DIR)/$(ALL).o $(BUILD_DIR)/$(ALL).bin
 
+# 使用 objcopy 提取 .data 段并生成二进制文件
+	@$(OBJCOPY) -O binary -j .data -j .bss $(BUILD_DIR)/$(ALL).o $(BUILD_DIR)/$(ALL)_data.bin
+
 # 使用 hexdump 转换为十六进制文件
 	@$(HEXDUMP) $(FLAGS_HDUMP) $(BUILD_DIR)/$(ALL).bin > $(BUILD_DIR)/$(ALL).hex
+
+# 使用 hexdump 转换为十六进制文件
+	@$(HEXDUMP) $(FLAGS_HDUMP) $(BUILD_DIR)/$(ALL)_data.bin > $(BUILD_DIR)/$(ALL)_data.hex
 
 # 反汇编 .o 文件
 	@$(OBJDUMP) -D -j .text -M no-aliases $(BUILD_DIR)/$(ALL).o > $(ASM_FILE)
@@ -76,7 +82,7 @@ $(BUILD_DIR)/$(ALL).o: $(C_FILE) $(ASM_SRC)
 # 这里调用 python 脚本将 .hex 文件转换为 .v 文件
 
 	@python3 /home/luyoung/CPU_based_on_MIPS/scripts/build_instMemo.py $(BUILD_DIR)/$(ALL).hex /home/luyoung/CPU_based_on_MIPS/CPU/InstMem.v
-
+	@python3 /home/luyoung/CPU_based_on_MIPS/scripts/build_dataMemo.py $(BUILD_DIR)/$(ALL)_data.hex /home/luyoung/CPU_based_on_MIPS/CPU/DataMem.v
 	@echo "\nBuild done."
 
 build: $(BUILD_DIR)/$(ALL).o

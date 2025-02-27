@@ -10,6 +10,10 @@ module DataMem(
     output reg [31:0] rdData    // 组合逻辑直接输出
 );
     reg [31:0] memory [0:1023]; // 4KB 内存
+// 初始化 memory
+
+    initial begin
+    end
 
     // 组合逻辑读操作：地址变化立即生效
     always @(*) begin

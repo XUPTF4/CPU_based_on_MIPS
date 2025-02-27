@@ -37,6 +37,6 @@ SECTIONS {
 
   # 堆和栈分配
   _heap_start = 0x00000100;  # 堆的起始地址
-  _heap_end = ORIGIN(ram) + LENGTH(ram);  # 堆的结束地址
+  _heap_end = 0x00000800;  # 堆的结束地址
   _stack_pointer = 0x1000;  # 栈起始地址
 }

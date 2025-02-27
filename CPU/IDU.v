@@ -82,6 +82,8 @@ module IDU (
 
     reg is_ll, is_sc, is_mfc0, is_mtc0, is_eret, is_syscall;
 
+    reg is_lb, is_sb;
+
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
 
     always @(*) begin
@@ -137,6 +139,9 @@ module IDU (
         is_mfc0 = 1'b0;
         is_mtc0 = 1'b0;
         is_eret = 1'b0;
+
+        is_lb = 1'b0;
+        is_sb = 1'b0;
 
 
 
@@ -298,6 +303,12 @@ module IDU (
                 is_mtc0 = 1'b1;
             32'b010000_00000_00000_00000_00000_011000:
                 is_eret = 1'b1;
+
+            32'b100000_?????_?????_?????_?????_??????:
+                is_lb = 1'b1;
+
+            32'b101000_?????_?????_?????_?????_??????:
+                is_sb = 1'b1;
 
 
 

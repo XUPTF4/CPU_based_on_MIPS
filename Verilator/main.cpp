@@ -48,7 +48,7 @@ void cpu_exec(uint64_t n) {
     while (n) {
         stepi();
         if (top->rootp->CPU__DOT__idu__DOT__is_break) {
-            if (top->rootp->CPU__DOT__exu_is_OK == 1) {
+            if (top->rootp->CPU__DOT__idu_regaData == 1) { // 标记退出信号
                 printf("\n\033[31mHIT bad trap!\033[0m\n");
             } else {
                 printf("\n\033[32mHIT good trap!\033[0m\n");
@@ -59,7 +59,7 @@ void cpu_exec(uint64_t n) {
             elapsed_time = (end.tv_sec - start.tv_sec) +
                            (end.tv_usec - start.tv_usec) / 1e6;
             mips = ((uint64_t(-1) - n) / elapsed_time) / 1e6;
-            printf("MIPS: %.6f MIPS\n", mips);
+            printf("\nMIPS: %.6f MIPS\n", mips);
             break;
         } else if (top->rootp->CPU__DOT__idu__DOT__is_unknown) {
             printf(
@@ -73,7 +73,7 @@ void cpu_exec(uint64_t n) {
             elapsed_time = (end.tv_sec - start.tv_sec) +
                            (end.tv_usec - start.tv_usec) / 1e6;
             mips = ((uint64_t(-1) - n) / elapsed_time) / 1e6;
-            printf("MIPS: %.6f MIPS\n", mips);
+            printf("\nMIPS: %.6f MIPS\n", mips);
             break;
         }
         n--;

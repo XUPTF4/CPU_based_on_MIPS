@@ -23,7 +23,11 @@ int main() {
     int i, j, ans_idx = 0;
     for (i = 0; i < 8; i++) {
         for (j = 0; j < 8; j++) {
-            check(add(test_data[i], test_data[j]) == ans[ans_idx++]);
+            int a = test_data[i];
+            int b = test_data[j];
+            int c = ans[ans_idx];
+            ans_idx = ans_idx + 1;
+            check(add(a, b) == c);
         }
         check(j == 8);
     }

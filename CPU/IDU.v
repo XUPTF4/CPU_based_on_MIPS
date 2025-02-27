@@ -61,7 +61,7 @@ module IDU (
     assign regaRd = 1'b1;
     assign regbRd = 1'b1;
     // RegFile 地址
-    assign regaAddr = rs_addr;
+    assign regaAddr = is_break ? 5'd4: rs_addr; // 如果是 break，那么需要读取 4 号寄存器
     assign regbAddr = rt_addr;
     // LOAD 地址
     assign rt_data_o = regbData_i; // rt 中的数据需要传到 mem，对于 Store
@@ -674,7 +674,7 @@ module IDU (
 
                 is_break: begin
                     op = ALU_BREAK;
-                    OP1_SEL = OP1_X;
+                    OP1_SEL = OP1_RS; // 技巧，将 RS 作为 break 的信号
                     OP2_SEL = OP2_X;
                     memWr = WMEN_X;
                     memRr = RMEN_X;

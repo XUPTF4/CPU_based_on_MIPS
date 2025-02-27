@@ -31,8 +31,6 @@ module EXU (
         input wire [4:0] regcAddr_i,        // WB 数据地址
         input wire [31:0] rt_data_i,        // store 指令写入的数据，for MEM
 
-        output wire [1:0] is_OK,            // 标记程序退出时的状态
-
         // HiLo
         input [31:0] rLoData_i,
         input [31:0] rHiData_i,
@@ -56,9 +54,6 @@ module EXU (
     assign writeWr = rst ? 1'b0 : memWr_i;
     assign rmask = r_mask_i;
     assign wmask = w_mask_i;
-
-    // 默认输出
-    assign is_OK = 2'b00;
 
     reg [31:0] alu_out;
     // ALU
@@ -109,19 +104,6 @@ module EXU (
         end
     end
 
-    always @(*) begin
-        case (op_i)
-            ALU_SYSCALL:
-                is_OK = 2'b00;
-            ALU_BREAK:
-                is_OK = alu_out[1:0];
-            ALU_UNKNOWN:
-                is_OK = 2'b10; // 2 代表未知指令
-            default:
-                is_OK = 2'b00;
-        endcase
-
-    end
     // HiLo
     wire signed [63:0] s_product = $signed( regaData_i) *  $signed(regbData_i);
     wire  [63:0] u_product = regaData_i * regbData_i;
@@ -198,5 +180,18 @@ module EXU (
             end
         endcase
     end
+    
+    // always @(*) begin
+    //     case (op_i)
+    //         ALU_SYSCALL:
+    //             is_OK = 2'b00;
+    //         ALU_BREAK:
+    //             is_OK = alu_out[1:0];
+    //         ALU_UNKNOWN:
+    //             is_OK = 2'b10; // 2 代表未知指令
+    //         default:
+    //             is_OK = 2'b00;
+    //     endcase
+    // end
 
 endmodule

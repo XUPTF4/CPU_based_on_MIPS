@@ -1,9 +1,9 @@
 // 顶层模块
 module CPU (
         input wire clk,
-        input wire rst,
-        output wire [1:0] isOK
+        input wire rst
     );
+
     // 信号连线
     // IFU
     wire [31:0] ifu_pc;
@@ -26,8 +26,7 @@ module CPU (
     wire [3:0] idu_r_mask;          // r_mask
     wire idu_regcWr;                // 寄存器写使能
     wire [4:0] idu_regcAddr;        // WB 数据地址
-    wire [31:0] idu_rt_data_o;      // load 指令写入的地址，for WBU
-
+    wire [31:0] idu_rt_data_o;      // load 指令写入的地址，for WB
 
     // EXU
     wire [31:0] exu_regcData;       // 寄存器写数据
@@ -42,9 +41,6 @@ module CPU (
     wire exu_writeWr;               // 内存写使能
     wire [3:0] exu_rmask;           // 读掩码
     wire [3:0] exu_wmask;           // 写掩码
-
-    wire [1:0] exu_is_OK;           // 退出状态，之所以定义是因为怕信号不用被优化掉
-    assign isOK = exu_is_OK;
 
     wire [31:0] exu_wLoData;
     wire exu_wlo;
@@ -168,7 +164,6 @@ module CPU (
             .regcWr_i(idu_regcWr),
             .regcAddr_i(idu_regcAddr),
             .rt_data_i(idu_rt_data_o), // 这是 rt 中 的数据，将其传到 mem 中，为了 SW 等 LOAD 指令
-            .is_OK(exu_is_OK),
 
             // for HiLo
             .rLoData_i(hilo_rLoData),

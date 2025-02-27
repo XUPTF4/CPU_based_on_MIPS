@@ -18,8 +18,8 @@ SECTIONS {
   } > rom
 
   .data : ALIGN(4) {
-    *(.data*)
-    *(.sdata*)
+    *(.data .data.*)
+    *(.sdata .sdata.*)
   } > ram AT> rom  # 数据段从 rom 加载到 ram
 
   _sdata = ADDR(.data);
@@ -36,7 +36,7 @@ SECTIONS {
   _ebss = ADDR(.bss) + SIZEOF(.bss);
 
   # 堆和栈分配
-  _heap_start = 0x00000100;  # 堆的起始地址
-  _heap_end = 0x00000800;  # 堆的结束地址
+  _heap_start = 0x0000600;  # 堆的起始地址
+  _heap_end = 0x00000900;  # 堆的结束地址
   _stack_pointer = 0x1000;  # 栈起始地址
 }

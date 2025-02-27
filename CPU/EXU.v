@@ -31,7 +31,17 @@ module EXU (
         input wire [4:0] regcAddr_i,        // WB 数据地址
         input wire [31:0] rt_data_i,        // store 指令写入的数据，for MEM
 
-        output wire [1:0] is_OK             // 标记程序退出时的状态
+        output wire [1:0] is_OK,            // 标记程序退出时的状态
+
+        // HiLo
+        input [31:0] rLoData_i,
+        input [31:0] rHiData_i,
+
+        output [31:0] wLoData,
+        output wlo,
+        output [31:0] wHiData,
+        output whi
+
     );
 
     // WB
@@ -112,4 +122,81 @@ module EXU (
         endcase
 
     end
+    // HiLo
+    wire signed [63:0] s_product = $signed( regaData_i) *  $signed(regbData_i);
+    wire  [63:0] u_product = regaData_i * regbData_i;
+    always @(*) begin
+        case(op_i)
+            ALU_MULT:begin
+                wLoData = s_product[31:0];   // LO寄存器写入低32位
+                wHiData = s_product[63:32];  // HI寄存器写入高32位
+                wlo = 1'b1;
+                whi = 1'b1;
+            end
+            ALU_MULTU:begin
+                wLoData = u_product[31:0];
+                wHiData = u_product[63:32];
+                wlo = 1'b1;
+                whi = 1'b1;
+            end
+            ALU_DIV:begin
+                if (regbData_i == 0) begin
+                    wLoData = 32'hFFFFFFFF;  // 商为全1
+                    wHiData = regaData_i;      // 余数保持被除数
+                end
+                else begin
+                    wLoData = $signed(regaData_i) / $signed(regbData_i);
+                    wHiData = $signed(regaData_i) % $signed(regbData_i);
+                end
+                wlo = (regbData_i != 0);  // 除零时不更新寄存器
+                whi = (regbData_i != 0);
+            end
+            ALU_DIVU:begin
+                if (regbData_i == 0) begin
+                    wLoData = 32'hFFFFFFFF;  // 商为全1
+                    wHiData = regaData_i;      // 余数保持被除数
+                end
+                else begin
+                    wLoData = regaData_i / regbData_i;
+                    wHiData = regaData_i % regbData_i;
+                end
+                wlo = (regbData_i != 0);  // 除零时不更新寄存器
+                whi = (regbData_i != 0);
+            end
+            ALU_MTHI:begin
+                wHiData = regaData_i;
+                wLoData = 32'b0;
+                wlo = 1'b0;
+                whi = 1'b1;
+            end
+            ALU_MTLO:begin
+                wLoData = regaData_i;
+                wHiData = 32'b0;
+                whi = 1'b0;
+                wlo = 1'b1;
+            end
+            default:begin
+                wLoData = 32'b0;
+                wHiData = 32'b0;
+                wlo = 1'b0;
+                whi = 1'b0;
+            end
+        endcase
+    end
+
+    // 数据移动指令
+    always @(*) begin
+        case(op_i)
+            ALU_MFHI:begin
+                regcData = rHiData_i; // HI 寄存器写入 WB 数据
+            end
+            ALU_MFLO:begin
+                regcData = rLoData_i; // LO 寄存器写入 WB 数据
+            end
+            default:begin
+                regcData = alu_out;
+            end
+        endcase
+    end
+
 endmodule

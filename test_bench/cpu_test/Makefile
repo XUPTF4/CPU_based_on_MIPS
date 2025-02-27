@@ -22,11 +22,16 @@ INCFLAGS = $(addprefix -I, $(INCLUDE))
 # 汇编文件路径
 ASM_FILE = $(BUILD_DIR)/$(ALL)_mips.txt
 
-LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld -z noexecstack -Ttext=0x00000000
+LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld
 
 # 一定要关闭编译优化，不然看波形看不懂
-C_FLAGS = -O0 -MMD -Wall -Werror -fno-asynchronous-unwind-tables -fno-builtin -fno-stack-protector \
-            -Wno-main -U_FORTIFY_SOURCE -fvisibility=hidden
+# -march=mips1 -mfp32 用于指定编译器生成的代码适用于 MIPS I 架构，且不使用浮点寄存器
+# mult：传统MIPS乘法指令，产生64位结果（HI/LO寄存器）
+# mul：MIPS32新增指令，直接产生32位结果（不涉及HI/LO）
+# 这里直接使用 mips1 架构 来测试 mult 指令、mulu 指令、div 指令、divu 指令、mflo 指令、mfhi 指令，但是不支持 mtlo、mthi 指令
+# mips2 架构支持 mtlo、mthi 指令，但是目前会让程序执行出错，仔细检查了原因，由于 t9 寄存器为 0，因此会跳转到 0 地址，导致程序执行出错
+C_FLAGS = -O0 -MMD -Wall -Werror -march=mips1 -mfp32 -fno-asynchronous-unwind-tables \
+        -fno-builtin -fno-stack-protector -Wno-main -nostdlib
 
 AS_FLAGS = -MMD $(INCFLAGS)
 

@@ -44,8 +44,12 @@ module CPU (
     wire [3:0] exu_wmask;           // 写掩码
 
     wire [1:0] exu_is_OK;           // 退出状态，之所以定义是因为怕信号不用被优化掉
-
     assign isOK = exu_is_OK;
+
+    wire [31:0] exu_wLoData;
+    wire exu_wlo;
+    wire [31:0] exu_wHiData;
+    wire exu_whi;
 
     // MEM
     wire [31:0] mem_regData;        // 寄存器数据 (输出信号)
@@ -74,6 +78,10 @@ module CPU (
 
     // DataMem
     wire [31:0] dataMem_rdData;     // 输出给 MEM
+
+    // HiLo
+    wire [31:0] hilo_rLoData;  // 低位数据输出
+    wire [31:0] hilo_rHiData;  // 高位数据输出
 
 
     IFU ifu(
@@ -160,7 +168,15 @@ module CPU (
             .regcWr_i(idu_regcWr),
             .regcAddr_i(idu_regcAddr),
             .rt_data_i(idu_rt_data_o), // 这是 rt 中 的数据，将其传到 mem 中，为了 SW 等 LOAD 指令
-            .is_OK(exu_is_OK)
+            .is_OK(exu_is_OK),
+
+            // for HiLo
+            .rLoData_i(hilo_rLoData),
+            .rHiData_i(hilo_rHiData),
+            .wLoData(exu_wLoData),
+            .wlo(exu_wlo),
+            .wHiData(exu_wHiData),
+            .whi(exu_whi)
         );
     MEM mem(
             .rst(rst),
@@ -213,5 +229,17 @@ module CPU (
            .wAddr(wbu_wAddr),
            .wData(wbu_wData)
        );
+
+    HiLo hilo(
+             .rst(rst),
+             .clk(clk),
+             .wLoData_i(exu_wLoData),
+             .wlo_i(exu_wlo),
+             .wHiData_i(exu_wHiData),
+             .whi_i(exu_whi),
+
+             .rLoData(hilo_rLoData),
+             .rHiData(hilo_rHiData)
+         );
 
 endmodule

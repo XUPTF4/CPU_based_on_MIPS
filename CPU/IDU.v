@@ -273,17 +273,22 @@ module IDU (
                 is_div = 1'b1;
             32'b000000_?????_?????_00000_00000_011011:
                 is_divu = 1'b1;
-            32'b000000_00000_00000_?????_?????_010000:
+
+            // 移动数据指令
+            32'b000000_00000_00000_?????_00000_010000:begin
+                regcAddr = rd_addr;
                 is_mfhi = 1'b1;
-            32'b000000_00000_00000_00000_?????_010010:
+            end
+            32'b000000_00000_00000_?????_00000_010010:begin
+                regcAddr = rd_addr;
                 is_mflo = 1'b1;
+            end
             32'b000000_?????_00000_00000_00000_010001:
                 is_mthi = 1'b1;
             32'b000000_?????_00000_00000_00000_010011:
                 is_mtlo = 1'b1;
+
             32'b110000_?????_?????_?????_?????_??????:
-
-
                 is_ll = 1'b1;
             32'b111000_?????_?????_?????_?????_??????:
                 is_sc = 1'b1;
@@ -629,7 +634,7 @@ module IDU (
                     OP2_SEL = OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
                     memWr = WMEN_X;
                     memRr = RMEN_X;
-                    regcWr = REN_S; // jalr 需要回写寄存器，可以将其放在 alu_out,
+                    regcWr = REN_S; // jalr 需要回写寄存器
 
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
@@ -689,17 +694,90 @@ module IDU (
                     r_mask = RMASK_X;
                 end
 
-                is_slti: begin
-                    op = ALU_SLTI;
+                is_mult: begin
+                    op = ALU_MULT;
                     OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMS; // 有符号扩展
+                    OP2_SEL = OP2_RT;
                     memWr = WMEN_X;
                     memRr = RMEN_X;
-                    regcWr = REN_S;
+                    regcWr = REN_X;
                     w_mask = WMASK_X;
                     r_mask = RMASK_X;
                 end
 
+                is_multu: begin
+                    op = ALU_MULTU;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+                is_div: begin
+                    op = ALU_DIV;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
+                is_divu: begin
+                    op = ALU_DIVU;
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_RT;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X;
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
+                is_mfhi: begin
+                    op = ALU_MFHI;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S; // 写入 rd
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+                is_mflo: begin
+                    op = ALU_MFLO;
+                    OP1_SEL = OP1_X;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_S; // 写入 rd
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+                is_mthi: begin
+                    op = ALU_MTHI;
+                    OP1_SEL = OP1_RS; // RS 中的数据写到 Lo
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X; // 这种写不算写
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
+
+                is_mtlo: begin
+                    op = ALU_MTLO; // RS 中的数据写到 Lo
+                    OP1_SEL = OP1_RS;
+                    OP2_SEL = OP2_X;
+                    memWr = WMEN_X;
+                    memRr = RMEN_X;
+                    regcWr = REN_X; // 这种写不算写
+                    w_mask = WMASK_X;
+                    r_mask = RMASK_X;
+                end
                 is_unknown: begin
                     op = ALU_UNKNOWN;
                     OP1_SEL = OP1_X;

@@ -13,6 +13,30 @@ module DataMem(
 // 初始化 memory
 
     initial begin
+        memory[0]  = 32'haeb1c2aa;
+        memory[1]  = 32'h4500ff2b;
+        memory[2]  = 32'h877190af;
+        memory[3]  = 32'h11f42438;
+        memory[4]  = 32'h19d29ab9;
+        memory[5]  = 32'hdb1a18e4;
+        memory[6]  = 32'hea15986d;
+        memory[7]  = 32'h3ac3088e;
+        memory[8]  = 32'h2649e980;
+        memory[9]  = 32'hfc0db236;
+        memory[10]  = 32'hfa4c43da;
+        memory[11]  = 32'h0a4a7d30;
+        memory[12]  = 32'h1299898e;
+        memory[13]  = 32'h2c56b139;
+        memory[14]  = 32'hdf8123d5;
+        memory[15]  = 32'h0a319e65;
+        memory[16]  = 32'h04d6dfa8;
+        memory[17]  = 32'h4c15dd68;
+        memory[18]  = 32'h38c5d79b;
+        memory[19]  = 32'h9e4357a1;
+        memory[20]  = 32'hf78b91cb;
+        memory[21]  = 32'h1efc4248;
+        memory[22]  = 32'h014255a4;
+        memory[23]  = 32'h7fdfcc40;
     end
 
     // 组合逻辑读操作：地址变化立即生效

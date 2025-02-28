@@ -37,6 +37,8 @@ module MEM (
             regData = rdData_i;
         end
     end
+    // 这个语句会导致 regData 延迟一个周期，所以在 WBU 中需要一个默认值
+    // assign regData = memRr_i ? rdData_i : regcData_i;
     assign regAddr = regcAddr_i;
 
     assign regWr = regcWr_i;
@@ -49,8 +51,13 @@ module MEM (
     assign memRr = memRr_i;
     assign w_mask = w_mask_i;
     assign r_mask = r_mask_i;
-    assign memCe = rst? 1'b0 : memRr_i | memWr_i;
-
-
+    // assign memCe = rst? 1'b0 : memRr_i | memWr_i;
+    // 同样的问题，memCe 也会延迟一个周期
+    always @(*) begin
+        memCe = memRr_i | memWr_i;
+        if(rst) begin
+            memCe = 1'b0;
+        end
+    end
 endmodule
 

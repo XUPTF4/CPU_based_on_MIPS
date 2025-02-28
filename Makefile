@@ -25,6 +25,9 @@ run: build
 clean:
 	@rm -rf $(OBJ_DIR)
 
+runall:
+	@bash run_all_tests.sh
+
 .PHONY: simu build run
 
 

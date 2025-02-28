@@ -40,7 +40,7 @@ void stepi() {
 }
 
 // 执行 CPU
-void cpu_exec(uint64_t n) {
+int cpu_exec(uint64_t n) {
     struct timeval start, end;
     gettimeofday(&start, NULL);  // 记录起始时间
     double elapsed_time, mips;
@@ -50,8 +50,10 @@ void cpu_exec(uint64_t n) {
         if (top->rootp->CPU__DOT__idu__DOT__is_break) {
             if (top->rootp->CPU__DOT__idu_regaData == 1) { // 标记退出信号
                 printf("\n\033[31mHIT bad trap!\033[0m\n");
+                    return 1;
             } else {
                 printf("\n\033[32mHIT good trap!\033[0m\n");
+                    return 0;
             }
 
             // 计数器
@@ -74,12 +76,13 @@ void cpu_exec(uint64_t n) {
                            (end.tv_usec - start.tv_usec) / 1e6;
             mips = ((uint64_t(-1) - n) / elapsed_time) / 1e6;
             printf("\nMIPS: %.6f MIPS\n", mips);
-            break;
+            return 1;
         }
         n--;
     }
     top->final();
     tfp->close();
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -89,7 +92,7 @@ int main(int argc, char* argv[]) {
 
     reset(5);
 
-    cpu_exec(-1);
+    int ret = cpu_exec(-1);
 
-    return 0;
+    return ret;
 }

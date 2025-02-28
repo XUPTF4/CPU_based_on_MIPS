@@ -85,11 +85,11 @@ module EXU (
                 ALU_XOR:
                     alu_out = regaData_i ^ regbData_i;
                 ALU_SLL:
-                    alu_out = regbData_i << regaData_i;
+                    alu_out = regbData_i << regaData_i[4:0];
                 ALU_SRL:
-                    alu_out = regbData_i >> regaData_i;
+                    alu_out = regbData_i >> regaData_i[4:0];
                 ALU_SRA:
-                    alu_out = regbData_i >>> regaData_i; // 数学右移
+                    alu_out = regbData_i >>> regaData_i[4:0]; // 数学右移
                 ALU_LUI:
                     alu_out = regaData_i;
                 ALU_SLTIU:
@@ -180,7 +180,7 @@ module EXU (
             end
         endcase
     end
-    
+
     // always @(*) begin
     //     case (op_i)
     //         ALU_SYSCALL:

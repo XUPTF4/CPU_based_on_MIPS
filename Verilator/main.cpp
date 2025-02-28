@@ -45,15 +45,19 @@ int cpu_exec(uint64_t n) {
     gettimeofday(&start, NULL);  // 记录起始时间
     double elapsed_time, mips;
 
+    int ret = 0;
+
     while (n) {
         stepi();
         if (top->rootp->CPU__DOT__idu__DOT__is_break) {
-            if (top->rootp->CPU__DOT__idu_regaData == 1) { // 标记退出信号
+            if (top->rootp->CPU__DOT__idu_regaData == 1) {  // 标记退出信号
                 printf("\n\033[31mHIT bad trap!\033[0m\n");
-                    return 1;
+
+                ret = 1;
             } else {
                 printf("\n\033[32mHIT good trap!\033[0m\n");
-                    return 0;
+
+                ret = 0;
             }
 
             // 计数器
@@ -76,13 +80,13 @@ int cpu_exec(uint64_t n) {
                            (end.tv_usec - start.tv_usec) / 1e6;
             mips = ((uint64_t(-1) - n) / elapsed_time) / 1e6;
             printf("\nMIPS: %.6f MIPS\n", mips);
-            return 1;
+            ret = 1;
         }
         n--;
     }
     top->final();
     tfp->close();
-    return 0;
+    return ret;
 }
 
 int main(int argc, char* argv[]) {

@@ -4,3 +4,4 @@ compile_commands.**
 wave.**
 obj_dir
 **/build
+test_logs

@@ -1,5 +1,7 @@
+// 指令解码
 `include "Helpers.v"  // 包含 constants.v 文件
 module IDU (
+        input wire clk,
         input wire rst,                 // 复位信号
         input wire [31:0] pc,
         input wire [31:0] inst,         // 输入指令
@@ -9,9 +11,8 @@ module IDU (
         output reg [31:0] regaData,     // 操作数 a
         output reg [31:0] regbData,     // 操作数 b, 为了利用 case 语法特性，这里使用 reg
 
-        // 跳转使能由 IDU 生成，跳转地址由 EXU 生成
         output reg jCe,                 // 跳转使能
-        output reg [31:0] jAddr,            // 跳转地址
+        output reg [31:0] jAddr,        // 跳转地址
 
         // 连接 RegFile
         output wire  regaRd,            // 读使能
@@ -20,7 +21,7 @@ module IDU (
         output wire [4:0] regbAddr,     // 读地址 b
 
         // 信号传递给 EXU
-        output reg [5:0] op,            // `ALU 功能
+        output reg [5:0] op,            // ALU 功能
         output reg [0:0] memWr,         // 内存写使能
         output reg [0:0] memRr,         // 内存读使能
         output reg [3:0] w_mask,        // w_mask
@@ -30,22 +31,38 @@ module IDU (
         output reg [31:0] rt_data_o     // load 指令写入的地址，for WBU
 
     );
-    // 提取指令字段
-    // 延迟槽
-    wire [31:0] pc_plus_4;
-    assign pc_plus_4 = pc + 32'd4;
+    // 寄存器组
+    reg [31:0] reg_pc_ifu;
+    reg [31:0] reg_inst_ifu;
 
-    // wire [5:0] funct = inst[5:0];
-    // wire [5:0] opcode = inst[31:26];
-    wire [4:0] rs_addr = inst[25:21];
-    wire [4:0] rt_addr = inst[20:16];
-    wire [4:0] rd_addr = inst[15:11];
-    wire [4:0] sa     = inst[10:6]; // sll,srl,sra
-    wire [25:0] address = inst[25:0]; // J,JAL
+    always @(posedge clk) begin
+        reg_pc_ifu <= pc;
+        reg_inst_ifu <= inst;
+    end
+
+    wire [31:0] idu_inst;
+    wire [31:0] idu_pc;
+
+    assign idu_inst = reg_inst_ifu;
+    assign idu_pc = reg_pc_ifu;
+
+
+
+    // 提取指令字段
+    wire [31:0] pc_plus_4;
+    assign pc_plus_4 = idu_pc + 32'd4;
+
+
+
+    wire [4:0] rs_addr = idu_inst[25:21];
+    wire [4:0] rt_addr = idu_inst[20:16];
+    wire [4:0] rd_addr = idu_inst[15:11];
+    wire [4:0] sa     = idu_inst[10:6]; // sll,srl,sra
+    wire [25:0] address = idu_inst[25:0]; // J,JAL
 
     // 提取立即数
-    wire [15:0] imm = inst[15:0]; // 也是 offset
-    wire [15:0] offset = inst[15:0];
+    wire [15:0] imm = idu_inst[15:0]; // 也是 offset
+    wire [15:0] offset = idu_inst[15:0];
 
     // 对立即数进行扩展
     // wire [31:0] s_imm = `signExtend(imm,16); // 有符号立即数
@@ -93,7 +110,7 @@ module IDU (
     always @(*) begin
         // LOAD 地址
         rt_data_o = regbData_i; // rt 中的数据需要传到 mem，对于 Store
-        
+
         // 20 条 I 型指令
         is_add = 1'b0;
         is_sub = 1'b0;
@@ -153,7 +170,7 @@ module IDU (
 
 
 
-        casez (inst[31:0])
+        casez (idu_inst[31:0])
             32'b000000_?????_?????_?????_00000_100000: begin
                 regcAddr = rd_addr;
                 is_add = 1'b1;
@@ -891,12 +908,16 @@ module IDU (
     end
 
     // 考虑到性能以及设计需求，现在需要将跳转地址的生成放在 IDU 中
+    // 在ID段增设一个加法器，用于计算分支目标地址。
+    // 把条件测试“=0？”的逻辑电路移到ID段。
+    // 这些结果直接回送到IF段的MUX1--->来源于参考的ppt
+
     always @(*) begin
         if (rst) begin
             jAddr = 32'b0;
         end
         else begin
-            case ( op)
+            case (op)
                 `ALU_J:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
                 `ALU_JR:

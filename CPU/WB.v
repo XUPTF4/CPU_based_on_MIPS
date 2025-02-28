@@ -1,6 +1,6 @@
-// 这是回写模块，增加一个并行的部件意味着可以增加一级流水
-// 这里进行修改寄存器，pc 除外，pc 的修改按照学校参考设计在了 ifu
+// 回写
 module WB (
+        input wire clk,
         input wire rst,             // 复位信号
         input wire [0:0] regWr,
         input wire [4:0] regAddr,
@@ -11,9 +11,28 @@ module WB (
         output wire [31:0] wData
 
     );
-    assign we = rst ? 1'b0:regWr;
-    assign wAddr = regAddr;
-    assign wData = regData;
+
+    // 寄存器组
+    reg [0:0] reg_regWr_mem;
+    reg [4:0] reg_regAddr_mem;
+    reg [31:0] reg_regData_mem;
+
+    always @(posedge clk) begin
+        reg_regWr_mem <= regWr;
+        reg_regAddr_mem <= regAddr;
+        reg_regData_mem <= regData;
+    end
+    wire [0:0] wb_regWr;
+    wire [4:0] wb_regAddr;
+    wire [31:0] wb_regData;
+
+    assign wb_regWr = reg_regWr_mem;
+    assign wb_regAddr = reg_regAddr_mem;
+    assign wb_regData = reg_regData_mem;
+
+    assign we = rst ? 1'b0:wb_regWr;
+    assign wAddr = wb_regAddr;
+    assign wData = wb_regData;
 
 endmodule
 

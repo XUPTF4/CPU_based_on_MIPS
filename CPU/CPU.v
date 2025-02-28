@@ -143,6 +143,7 @@ module CPU (
             );
 
     IDU idu(
+            .clk(clk),
             .rst(rst),
             .pc(ifu_pc),
             .inst(instMem_data),
@@ -170,6 +171,7 @@ module CPU (
         );
 
     EXU exu(
+            .clk(clk),
             .rst(rst),
             .regcData(exu_regcData),
             .regcAddr(exu_regcAddr),
@@ -204,8 +206,8 @@ module CPU (
             .whi(exu_whi)
         );
     MEM mem(
+            .clk(clk),
             .rst(rst),
-
             .regcData_i(exu_regcData),
             .regcAddr_i(exu_regcAddr),
             .regcWr_i(exu_regcWr),
@@ -246,6 +248,7 @@ module CPU (
     // output declaration of module WB
 
     WB wb(
+           .clk(clk),
            .rst(rst),
            .regWr(mem_regWr),
            .regAddr(mem_regAddr),

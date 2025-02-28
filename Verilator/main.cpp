@@ -50,7 +50,7 @@ int cpu_exec(uint64_t n) {
     while (n) {
         stepi();
         if (top->rootp->CPU__DOT__idu__DOT__is_break) {
-            if (top->rootp->CPU__DOT__idu_regaData == 1) {  // 标记退出信号
+            if (top->rootp->CPU__DOT__exu__DOT__reg_regaData_i_idu == 1) {  // 标记退出信号
                 printf("\n\033[31mHIT bad trap!\033[0m\n");
 
                 ret = 1;
@@ -72,7 +72,7 @@ int cpu_exec(uint64_t n) {
                 "\n\033[35munknown instruction----> "
                 "PC:0x%08x--->INST:0x%08x\033[0m\n",
                 top->rootp->CPU__DOT__ifu_pc,
-                top->rootp->CPU__DOT__instMem_data);
+                top->rootp->CPU__DOT__idu__DOT__reg_inst_ifu);
 
             // 计数器
             gettimeofday(&end, NULL);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     reset(5);
 
-    int ret = cpu_exec(-1);
+    int ret = cpu_exec(200);
 
     return ret;
 }

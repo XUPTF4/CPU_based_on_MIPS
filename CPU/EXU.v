@@ -1,6 +1,6 @@
 // 运算单元
-// 这里主要实现 ALU
-// 发出跳转信号：跳转地址信号的生成需要 ALU，放在 IDU 是不合理的
+// 这里主要实现 `ALU
+// 发出跳转信号：跳转地址信号的生成需要 `ALU，放在 IDU 是不合理的
 `include "Helpers.v"  // 包含 constants.v 文件
 module EXU (
         input wire rst,                     // 复位信号
@@ -19,7 +19,7 @@ module EXU (
 
 
         // 来自上游的信号
-        input wire [5:0] op_i,              // ALU 功能 (输入信号)
+        input wire [5:0] op_i,              // `ALU 功能 (输入信号)
         input wire [0:0] memWr_i,           // 内存写使能 (输入信号)
         input wire [0:0] memRr_i,           // 内存读使能 (输入信号)
         input wire [3:0] w_mask_i,          // w_mask (输入信号)
@@ -35,15 +35,15 @@ module EXU (
         input [31:0] rLoData_i,
         input [31:0] rHiData_i,
 
-        output [31:0] wLoData,
-        output wlo,
-        output [31:0] wHiData,
-        output whi
+        output reg [31:0] wLoData,
+        output reg wlo,
+        output reg [31:0] wHiData,
+        output reg whi
 
     );
+    reg [31:0] alu_out;
 
     // WB
-    assign regcData = alu_out;
     assign regcAddr = regcAddr_i;
     assign regcWr = rst ? 1'b0 : regcWr_i;
 
@@ -55,48 +55,48 @@ module EXU (
     assign rmask = r_mask_i;
     assign wmask = w_mask_i;
 
-    reg [31:0] alu_out;
-    // ALU
+
+    // `ALU
     always @(*) begin
         if (rst) begin
-            alu_out = 32'b0; // 复位时 ALU 输出为 0
+            alu_out = 32'b0; // 复位时 `ALU 输出为 0
         end
         else begin
             case (op_i)
-                ALU_ADD:
+                `ALU_ADD:
                     alu_out = regaData_i + regbData_i;
-                ALU_LW:
+                `ALU_LW:
                     alu_out = regaData_i + regbData_i; // LW
-                ALU_SW:
+                `ALU_SW:
                     alu_out = regaData_i + regbData_i; // SW
-                ALU_JAL:
+                `ALU_JAL:
                     alu_out = regaData_i + regbData_i; // JAL
-                ALU_JALR:
+                `ALU_JALR:
                     alu_out = regaData_i + regbData_i; // JALR
-                ALU_BGEZAL:
+                `ALU_BGEZAL:
                     alu_out = regaData_i + regbData_i;
 
-                ALU_SUB:
+                `ALU_SUB:
                     alu_out = regaData_i - regbData_i;
-                ALU_AND:
+                `ALU_AND:
                     alu_out = regaData_i & regbData_i;
-                ALU_OR:
+                `ALU_OR:
                     alu_out = regaData_i | regbData_i;
-                ALU_XOR:
+                `ALU_XOR:
                     alu_out = regaData_i ^ regbData_i;
-                ALU_SLL:
+                `ALU_SLL:
                     alu_out = regbData_i << regaData_i[4:0];
-                ALU_SRL:
+                `ALU_SRL:
                     alu_out = regbData_i >> regaData_i[4:0];
-                ALU_SRA:
+                `ALU_SRA:
                     alu_out = regbData_i >>> regaData_i[4:0]; // 数学右移
-                ALU_LUI:
+                `ALU_LUI:
                     alu_out = regaData_i;
-                ALU_SLTIU:
+                `ALU_SLTIU:
                     alu_out = regaData_i < regbData_i ? 32'b1 : 32'b0;
-                ALU_SLT:
+                `ALU_SLT:
                     alu_out = regaData_i < regbData_i ? 32'b1 : 32'b0;
-                ALU_SLTI:
+                `ALU_SLTI:
                     alu_out = regaData_i < regbData_i ? 32'b1 : 32'b0;
                 default:
                     alu_out = 32'b0;
@@ -105,23 +105,25 @@ module EXU (
     end
 
     // HiLo
-    wire signed [63:0] s_product = $signed( regaData_i) *  $signed(regbData_i);
-    wire  [63:0] u_product = regaData_i * regbData_i;
+    wire signed [63:
+                 0] s_product = $signed( regaData_i) *  $signed(regbData_i);
+    wire  [63:
+           0] u_product = regaData_i * regbData_i;
     always @(*) begin
         case(op_i)
-            ALU_MULT:begin
+            `ALU_MULT:begin
                 wLoData = s_product[31:0];   // LO寄存器写入低32位
                 wHiData = s_product[63:32];  // HI寄存器写入高32位
                 wlo = 1'b1;
                 whi = 1'b1;
             end
-            ALU_MULTU:begin
+            `ALU_MULTU:begin
                 wLoData = u_product[31:0];
                 wHiData = u_product[63:32];
                 wlo = 1'b1;
                 whi = 1'b1;
             end
-            ALU_DIV:begin
+            `ALU_DIV:begin
                 if (regbData_i == 0) begin
                     wLoData = 32'hFFFFFFFF;  // 商为全1
                     wHiData = regaData_i;      // 余数保持被除数
@@ -133,7 +135,7 @@ module EXU (
                 wlo = (regbData_i != 0);  // 除零时不更新寄存器
                 whi = (regbData_i != 0);
             end
-            ALU_DIVU:begin
+            `ALU_DIVU:begin
                 if (regbData_i == 0) begin
                     wLoData = 32'hFFFFFFFF;  // 商为全1
                     wHiData = regaData_i;      // 余数保持被除数
@@ -145,13 +147,13 @@ module EXU (
                 wlo = (regbData_i != 0);  // 除零时不更新寄存器
                 whi = (regbData_i != 0);
             end
-            ALU_MTHI:begin
+            `ALU_MTHI:begin
                 wHiData = regaData_i;
                 wLoData = 32'b0;
                 wlo = 1'b0;
                 whi = 1'b1;
             end
-            ALU_MTLO:begin
+            `ALU_MTLO:begin
                 wLoData = regaData_i;
                 wHiData = 32'b0;
                 whi = 1'b0;
@@ -169,10 +171,10 @@ module EXU (
     // 数据移动指令
     always @(*) begin
         case(op_i)
-            ALU_MFHI:begin
+            `ALU_MFHI:begin
                 regcData = rHiData_i; // HI 寄存器写入 WB 数据
             end
-            ALU_MFLO:begin
+            `ALU_MFLO:begin
                 regcData = rLoData_i; // LO 寄存器写入 WB 数据
             end
             default:begin
@@ -180,18 +182,5 @@ module EXU (
             end
         endcase
     end
-
-    // always @(*) begin
-    //     case (op_i)
-    //         ALU_SYSCALL:
-    //             is_OK = 2'b00;
-    //         ALU_BREAK:
-    //             is_OK = alu_out[1:0];
-    //         ALU_UNKNOWN:
-    //             is_OK = 2'b10; // 2 代表未知指令
-    //         default:
-    //             is_OK = 2'b00;
-    //     endcase
-    // end
 
 endmodule

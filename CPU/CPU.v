@@ -1,8 +1,38 @@
 // 顶层模块
 module CPU (
-        input wire clk,
-        input wire rst
+        // Vivado 的时候注释掉
+        // input wire clk,
+        // input wire rst
     );
+
+    //=================Vivado=================
+    // 模拟输入信号
+    reg clk;
+    reg rst;
+
+    // 模拟时钟信号
+    initial begin
+        clk = 0;
+        forever
+            #5 clk = ~clk;  // 生成周期为 10ns 的时钟信号
+    end
+
+    // 模拟复位信号
+    initial begin
+        rst = 1;  // 初始化复位信号为高电平
+        @(posedge clk);
+        @(posedge clk);
+        @(posedge clk);
+        @(posedge clk);
+        @(posedge clk);
+        rst = 0;  // 释放复位信号
+        @(posedge clk);
+        @(posedge clk);
+        @(posedge clk);
+        @(posedge clk);
+        @(posedge clk);
+    end
+    //=================Vivado=================
 
     // 信号连线
     // IFU
@@ -12,7 +42,6 @@ module CPU (
     // IDU
     wire [31:0] idu_regaData;       // 操作数 a
     wire [31:0] idu_regbData;       // 操作数 b
-
     wire idu_jCe;                   // 跳转使能
     wire [31:0] idu_jAddr;          // 跳转地址
     wire idu_regaRd;                // 读使能 a

@@ -51,13 +51,13 @@ module MEM (
     assign memRr = memRr_i;
     assign w_mask = w_mask_i;
     assign r_mask = r_mask_i;
-    // assign memCe = rst? 1'b0 : memRr_i | memWr_i;
+    assign memCe = rst? 1'b0 : memRr_i | memWr_i;
     // 同样的问题，memCe 也会延迟一个周期
-    always @(*) begin
-        memCe = memRr_i | memWr_i;
-        if(rst) begin
-            memCe = 1'b0;
-        end
-    end
+    // always @(*) begin
+    //     memCe = memRr_i | memWr_i;
+    //     if(rst) begin
+    //         memCe = 1'b0;
+    //     end
+    // end
 endmodule
 

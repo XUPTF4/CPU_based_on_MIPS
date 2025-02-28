@@ -20,7 +20,7 @@ module IDU (
         output wire [4:0] regbAddr,     // 读地址 b
 
         // 信号传递给 EXU
-        output reg [5:0] op,            // ALU 功能
+        output reg [5:0] op,            // `ALU 功能
         output reg [0:0] memWr,         // 内存写使能
         output reg [0:0] memRr,         // 内存读使能
         output reg [3:0] w_mask,        // w_mask
@@ -31,8 +31,6 @@ module IDU (
 
     );
     // 提取指令字段
-    assign jCe = 1'b0; // 默认不跳转
-
     // 延迟槽
     wire [31:0] pc_plus_4;
     assign pc_plus_4 = pc + 32'd4;
@@ -48,14 +46,21 @@ module IDU (
     // 提取立即数
     wire [15:0] imm = inst[15:0]; // 也是 offset
     wire [15:0] offset = inst[15:0];
-    // 对立即数进行扩展
-    wire [31:0] s_imm = `signExtend(imm,16); // 有符号立即数
-    wire [31:0] u_imm = `zeroExtend(imm,16); // 无符号立即数
-    wire [31:0] s_offset = `signExtend(offset,16); // 有符号立即数
-    // wire [31:0] u_offset = `zeroExtend(offset,16); // 无符号立即数
-    wire [31:0] u_sa = `zeroExtend(sa,5); // 无符号立即数
-    wire [31:0] u_address = `zeroExtend(address,26); // 无符号立即数
 
+    // 对立即数进行扩展
+    // wire [31:0] s_imm = `signExtend(imm,16); // 有符号立即数
+    // wire [31:0] u_imm = `zeroExtend(imm,16); // 无符号立即数
+    // wire [31:0] s_offset = `signExtend(offset,16); // 有符号立即数
+    // // wire [31:0] u_offset = `zeroExtend(offset,16); // 无符号立即数
+    // wire [31:0] u_sa = `zeroExtend(sa,5); // 无符号立即数
+    // wire [31:0] u_address = `zeroExtend(address,26); // 无符号立即数
+
+    // vivado 无法识别 `signExtend
+    wire [31:0] s_imm = { {16{imm[15]}}, imm}; // 有符号立即数
+    wire [31:0] u_imm = { {16{1'b0}}, imm[15:0] };   // 无符号立即数
+    wire [31:0] s_offset = { {16{offset[15]}}, offset[15:0] }; // 有符号立即数
+    wire [31:0] u_sa = { {27{1'b0}}, sa[4:0] };   // 无符号立即数
+    wire [31:0] u_address = { {6{1'b0}}, address[25:0] }; // 无符号立即数
 
     // 默认 指令存储器使能为 1
     assign regaRd = 1'b1;
@@ -63,8 +68,7 @@ module IDU (
     // RegFile 地址
     assign regaAddr = is_break ? 5'd4: rs_addr; // 如果是 break，那么需要读取 4 号寄存器
     assign regbAddr = rt_addr;
-    // LOAD 地址
-    assign rt_data_o = regbData_i; // rt 中的数据需要传到 mem，对于 Store
+
 
 
     // 解析信号
@@ -87,6 +91,9 @@ module IDU (
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
 
     always @(*) begin
+        // LOAD 地址
+        rt_data_o = regbData_i; // rt 中的数据需要传到 mem，对于 Store
+        
         // 20 条 I 型指令
         is_add = 1'b0;
         is_sub = 1'b0;
@@ -330,485 +337,485 @@ module IDU (
 
     always @(*) begin
         if (rst) begin
-            op = ALU_X;
-            OP1_SEL = OP1_X;
-            OP2_SEL = OP2_X;
-            memWr = WMEN_X;
-            memRr = RMEN_X;
-            regcWr = REN_S;
-            w_mask = WMASK_X;
-            r_mask = RMASK_X;
+            op = `ALU_X;
+            OP1_SEL = `OP1_X;
+            OP2_SEL = `OP2_X;
+            memWr = `WMEN_X;
+            memRr = `RMEN_X;
+            regcWr = `REN_S;
+            w_mask = `WMASK_X;
+            r_mask = `RMASK_X;
             regcAddr = 5'd0;
         end
         else begin
             case (1'b1)
                 is_add: begin
-                    op = ALU_ADD;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_ADD;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                     regcAddr = rd_addr;
 
                 end
                 is_addu: begin
-                    op = ALU_ADD;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_ADD;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                     regcAddr = rd_addr;
 
                 end
                 is_sub: begin
-                    op = ALU_SUB;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SUB;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_subu: begin
-                    op = ALU_SUB;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SUB;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_and: begin
-                    op = ALU_AND;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_AND;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
 
                 end
                 is_or: begin
-                    op = ALU_OR;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_OR;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
 
                 end
                 is_xor: begin
-                    op = ALU_XOR;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_XOR;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
 
                 end
                 is_sll: begin
-                    op = ALU_SLL;
-                    OP1_SEL = OP1_IM_SA;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SLL;
+                    OP1_SEL = `OP1_IM_SA;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
 
                 end
                 is_srl: begin
-                    op = ALU_SRL;
-                    OP1_SEL = OP1_IM_SA;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SRL;
+                    OP1_SEL = `OP1_IM_SA;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
 
                 end
                 is_sra: begin
-                    op = ALU_SRA;
-                    OP1_SEL = OP1_IM_SA;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SRA;
+                    OP1_SEL = `OP1_IM_SA;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                 end
 
                 is_addi: begin
-                    op = ALU_ADD;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMS; // 符号扩展
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_ADD;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_IMS; // 符号扩展
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                 end
                 is_addiu: begin
-                    op = ALU_ADD;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMS;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_ADD;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_IMS;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                 end
                 is_andi: begin
-                    op = ALU_AND;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMZ; // 零扩展
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_AND;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_IMZ; // 零扩展
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                 end
                 is_ori: begin
-                    op = ALU_OR;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMZ;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_OR;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_IMZ;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                 end
                 is_xori: begin
-                    op = ALU_XOR;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMZ;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_XOR;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_IMZ;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                 end
                 is_lw: begin
-                    op = ALU_LW;
-                    OP1_SEL = OP1_RS; // 同 base
-                    OP2_SEL = OP2_IM_OFFSET_S; // 立即数 offset 符号扩展
-                    memWr = WMEN_X;
-                    memRr = RMEN_S; // 读内存
-                    regcWr = REN_S; // 读完了要回写
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_C; // 读取 4 字节
+                    op = `ALU_LW;
+                    OP1_SEL = `OP1_RS; // 同 base
+                    OP2_SEL = `OP2_IM_OFFSET_S; // 立即数 offset 符号扩展
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_S; // 读内存
+                    regcWr = `REN_S; // 读完了要回写
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_C; // 读取 4 字节
                 end
                 is_sw: begin
-                    op = ALU_SW;
-                    OP1_SEL = OP1_RS; // 同 base
-                    OP2_SEL = OP2_IM_OFFSET_S;  // 立即数 offset 符号扩展
-                    memWr = WMEN_S; // 写内存
-                    memRr = RMEN_X;
-                    regcWr = REN_X;  // 写内存不需要回写
-                    w_mask = WMASK_C; // 存入 4 字节
-                    r_mask = RMASK_X;
+                    op = `ALU_SW;
+                    OP1_SEL = `OP1_RS; // 同 base
+                    OP2_SEL = `OP2_IM_OFFSET_S;  // 立即数 offset 符号扩展
+                    memWr = `WMEN_S; // 写内存
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;  // 写内存不需要回写
+                    w_mask = `WMASK_C; // 存入 4 字节
+                    r_mask = `RMASK_X;
                 end
                 // 这里比较复杂
                 is_beq: begin
-                    op = ALU_BEQ;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_BEQ;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
 
                 end
                 is_bne: begin
-                    op = ALU_BNE;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_BNE;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_bgezal: begin
-                    op = ALU_BGEZAL;
-                    OP1_SEL = OP1_PC;
-                    OP2_SEL = OP2_IM_4;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_BGEZAL;
+                    OP1_SEL = `OP1_PC;
+                    OP2_SEL = `OP2_IM_4;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_blez: begin
-                    op = ALU_BLEZ;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_BLEZ;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_bgtz: begin
-                    op = ALU_BGTZ;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_BGTZ;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_bltz: begin
-                    op = ALU_BLTZ;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_BLTZ;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_lui: begin
-                    op = ALU_LUI;
-                    OP1_SEL = OP1_LUI;
-                    OP2_SEL = OP2_X; // imm 送入高 16 位
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_LUI;
+                    OP1_SEL = `OP1_LUI;
+                    OP2_SEL = `OP2_X; // imm 送入高 16 位
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
 
                 end
                 is_j: begin
-                    op = ALU_J;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_J;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_jal: begin
-                    op = ALU_JAL;
-                    OP1_SEL = OP1_PC;
-                    OP2_SEL = OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;     // jal 需要回写寄存器
+                    op = `ALU_JAL;
+                    OP1_SEL = `OP1_PC;
+                    OP2_SEL = `OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;     // jal 需要回写寄存器
 
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_jalr: begin
-                    op = ALU_JALR;
-                    OP1_SEL = OP1_PC;
-                    OP2_SEL = OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S; // jalr 需要回写寄存器
+                    op = `ALU_JALR;
+                    OP1_SEL = `OP1_PC;
+                    OP2_SEL = `OP2_IM_4; // 手册错误，应该是延迟槽，而不是延迟槽后的 PC
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S; // jalr 需要回写寄存器
 
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_jr: begin
-                    op = ALU_JR;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_JR;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
                 is_syscall: begin
-                    op = ALU_SYSCALL;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SYSCALL;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_break: begin
-                    op = ALU_BREAK;
-                    OP1_SEL = OP1_RS; // 技巧，将 RS 作为 break 的信号
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_BREAK;
+                    OP1_SEL = `OP1_RS; // 技巧，将 RS 作为 break 的信号
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_sltiu: begin
-                    op = ALU_SLTIU;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_IMS; // 有符号扩展
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SLTIU;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_IMS; // 有符号扩展
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_slt: begin
-                    op = ALU_SLT;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_SLT;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_mult: begin
-                    op = ALU_MULT;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_MULT;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_multu: begin
-                    op = ALU_MULTU;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_MULTU;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
                 is_div: begin
-                    op = ALU_DIV;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_DIV;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_divu: begin
-                    op = ALU_DIVU;
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_RT;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_DIVU;
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_mfhi: begin
-                    op = ALU_MFHI;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S; // 写入 rd
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_MFHI;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S; // 写入 rd
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
                 is_mflo: begin
-                    op = ALU_MFLO;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_S; // 写入 rd
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_MFLO;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_S; // 写入 rd
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
                 is_mthi: begin
-                    op = ALU_MTHI;
-                    OP1_SEL = OP1_RS; // RS 中的数据写到 Lo
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X; // 这种写不算写
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_MTHI;
+                    OP1_SEL = `OP1_RS; // RS 中的数据写到 Lo
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X; // 这种写不算写
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 is_mtlo: begin
-                    op = ALU_MTLO; // RS 中的数据写到 Lo
-                    OP1_SEL = OP1_RS;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X; // 这种写不算写
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_MTLO; // RS 中的数据写到 Lo
+                    OP1_SEL = `OP1_RS;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X; // 这种写不算写
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
                 is_unknown: begin
-                    op = ALU_UNKNOWN;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_UNKNOWN;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
 
                 default: begin
-                    op = ALU_X;
-                    OP1_SEL = OP1_X;
-                    OP2_SEL = OP2_X;
-                    memWr = WMEN_X;
-                    memRr = RMEN_X;
-                    regcWr = REN_X;
-                    w_mask = WMASK_X;
-                    r_mask = RMASK_X;
+                    op = `ALU_X;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
                 end
             endcase
         end
@@ -818,15 +825,15 @@ module IDU (
 
     always @(*) begin
         case (OP1_SEL)
-            OP1_RS:
+            `OP1_RS:
                 regaData = regaData_i;
-            OP1_IM_SA:
+            `OP1_IM_SA:
                 regaData = u_sa; // sll, srl, sra
-            OP1_IMS:
+            `OP1_IMS:
                 regaData = s_imm; // BEQ,BNE, 相当于符号扩展的 offset
-            OP1_LUI:
+            `OP1_LUI:
                 regaData = u_imm << 16; // 高 16 位放入 rt
-            OP1_PC:
+            `OP1_PC:
                 regaData = pc;
             default:
                 regaData = 0;
@@ -835,19 +842,19 @@ module IDU (
 
     always @(*) begin
         case (OP2_SEL)
-            OP2_RT:
+            `OP2_RT:
                 regbData = regbData_i;
-            OP2_IMS:
+            `OP2_IMS:
                 regbData = s_imm; // 符号扩展
-            OP2_IMZ:
+            `OP2_IMZ:
                 regbData = u_imm; // 0 扩展
-            OP2_ADDRESS:
+            `OP2_ADDRESS:
                 regbData = u_address; // 0 扩展
-            OP2_IM_4:
+            `OP2_IM_4:
                 regbData = 32'd4; // JAL, BGEZAL
-            OP2_IM_OFFSET_S:
+            `OP2_IM_OFFSET_S:
                 regbData = s_offset; // LW,SW
-            OP2_PC:
+            `OP2_PC:
                 regbData = pc;
 
             default:
@@ -858,25 +865,25 @@ module IDU (
     // 跳转信号
     always @(*) begin
         case (op)
-            ALU_BEQ:
+            `ALU_BEQ:
                 jCe = (regaData_i == regbData_i);
-            ALU_BNE:
+            `ALU_BNE:
                 jCe = (regaData_i != regbData_i);
-            ALU_BGEZAL:
+            `ALU_BGEZAL:
                 jCe = (regaData_i[31] == 1'b0); // 符号位如果为 0，就是非负，那么一定大于等于 0
-            ALU_BLEZ:
+            `ALU_BLEZ:
                 jCe = (regaData_i[31] == 1'b1 || regaData_i == 32'd0); // 小于等于 0 跳转
-            ALU_BGTZ:
+            `ALU_BGTZ:
                 jCe = (regaData_i[31] == 1'b0 || regaData_i != 32'd0); // 大于 0 跳转
-            ALU_BLTZ:
+            `ALU_BLTZ:
                 jCe = (regaData_i[31] == 1'b1); // 小于 0 跳转
-            ALU_J:
+            `ALU_J:
                 jCe = 1'b1;
-            ALU_JAL:
+            `ALU_JAL:
                 jCe = 1'b1;
-            ALU_JALR:
+            `ALU_JALR:
                 jCe = 1'b1;
-            ALU_JR:
+            `ALU_JR:
                 jCe = 1'b1;
             default:
                 jCe = 1'b0;
@@ -890,26 +897,27 @@ module IDU (
         end
         else begin
             case ( op)
-                ALU_J:
+                `ALU_J:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
-                ALU_JR:
+                `ALU_JR:
                     jAddr = regaData_i; // rs 中的数据
-                ALU_JAL:
+                `ALU_JAL:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
-                ALU_JALR:
+                `ALU_JALR:
                     jAddr = regaData_i; // rs 中的数据
-                ALU_BEQ:
-                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
-                ALU_BNE:
-                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
-                ALU_BGEZAL:
-                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
-                ALU_BLEZ:
-                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
-                ALU_BGTZ:
-                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
-                ALU_BLTZ:
-                    jAddr = pc_plus_4 + `signExtend({offset,2'b00} ,18); // 左移两位，再符号扩展 + 延迟槽
+                `ALU_BEQ:
+
+                    jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
+                `ALU_BNE:
+                    jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
+                `ALU_BGEZAL:
+                    jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
+                `ALU_BLEZ:
+                    jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
+                `ALU_BGTZ:
+                    jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
+                `ALU_BLTZ:
+                    jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
                 default:
                     jAddr = 32'b0;
             endcase

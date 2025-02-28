@@ -1,6 +1,5 @@
 #!/bin/bash
 # 配置区域
-# 配置区域
 CPU_HOME=$(pwd)  # 获取当前工作目录
 TEST_DIR="$CPU_HOME/test_bench/cpu_test/tests"
 BUILD_DIR="$CPU_HOME/test_bench/cpu_test"

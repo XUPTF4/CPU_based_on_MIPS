@@ -17,10 +17,18 @@ module WB (
     reg [4:0] reg_regAddr_mem;
     reg [31:0] reg_regData_mem;
 
-    always @(posedge clk) begin
-        reg_regWr_mem <= regWr;
-        reg_regAddr_mem <= regAddr;
-        reg_regData_mem <= regData;
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
+            reg_regWr_mem <= 1'b0;
+            reg_regAddr_mem <= 5'd0;
+            reg_regData_mem <= 32'd0;
+
+        end
+        else begin
+            reg_regWr_mem <= regWr;
+            reg_regAddr_mem <= regAddr;
+            reg_regData_mem <= regData;
+        end
     end
     wire [0:0] wb_regWr;
     wire [4:0] wb_regAddr;

@@ -41,17 +41,31 @@ module MEM (
     reg [3:0] reg_w_mask_exu;
     reg [3:0] reg_r_mask_i_idu;
 
-    always @(posedge clk) begin
-        reg_regcData_i_exu <= regcData_i;
-        reg_regcAddr_i_exu <= regcAddr_i;
-        reg_regcWr_i_exu <= regcWr_i;
-        reg_memAddr_i_exu <= memAddr_i;
-        reg_memData_i_exu <= memData_i;
-        reg_rdData_i_exu <= rdData_i;
-        reg_memWr_i_exu <= memWr_i;
-        reg_memRr_i_exu <= memRr_i;
-        reg_w_mask_exu <= w_mask_i;
-        reg_r_mask_i_idu <= r_mask_i;
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
+            reg_regcData_i_exu <= 32'd0;
+            reg_regcAddr_i_exu <= 5'd0;
+            reg_regcWr_i_exu <= 1'b0;
+            reg_memAddr_i_exu <= 32'd0;
+            reg_memData_i_exu <= 32'd0;
+            reg_rdData_i_exu <= 32'd0;
+            reg_memWr_i_exu <= 1'b0;
+            reg_memRr_i_exu <= 1'b0;
+            reg_w_mask_exu <= 4'd0;
+            reg_r_mask_i_idu <= 4'd0;
+        end
+        else begin
+            reg_regcData_i_exu <= regcData_i;
+            reg_regcAddr_i_exu <= regcAddr_i;
+            reg_regcWr_i_exu <= regcWr_i;
+            reg_memAddr_i_exu <= memAddr_i;
+            reg_memData_i_exu <= memData_i;
+            reg_rdData_i_exu <= rdData_i;
+            reg_memWr_i_exu <= memWr_i;
+            reg_memRr_i_exu <= memRr_i;
+            reg_w_mask_exu <= w_mask_i;
+            reg_r_mask_i_idu <= r_mask_i;
+        end
     end
 
     wire [31:0] mem_regcData;

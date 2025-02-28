@@ -35,15 +35,22 @@ module IDU (
     reg [31:0] reg_pc_ifu;
     reg [31:0] reg_inst_ifu;
 
-    always @(posedge clk) begin
-        reg_pc_ifu <= pc;
-        reg_inst_ifu <= inst;
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
+            reg_inst_ifu <= 32'd0;
+            reg_pc_ifu <= 32'd0;
+
+        end
+        else begin
+            reg_pc_ifu <= pc;
+            reg_inst_ifu <= inst;
+        end
     end
 
     wire [31:0] idu_inst;
     wire [31:0] idu_pc;
 
-    assign idu_inst = reg_inst_ifu;
+    assign idu_inst = (inst == 32'd0) ? 32'd0: reg_inst_ifu;
     assign idu_pc = reg_pc_ifu;
 
 

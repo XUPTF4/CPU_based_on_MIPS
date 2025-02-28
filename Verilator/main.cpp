@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     top->trace(tfp, 99);
     tfp->open("wave.vcd");
 
-    reset(5);
+    reset(1);
 
     int ret = cpu_exec(200);
 

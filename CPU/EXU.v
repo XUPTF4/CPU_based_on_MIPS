@@ -52,17 +52,31 @@ module EXU (
     reg [4:0] reg_regcAddr_i_idu;
     reg [31:0] reg_rt_data_i_idu;
 
-    always @(posedge clk) begin
-        reg_op_i_idu <= op_i;
-        reg_memWr_i_idu <= memWr_i;
-        reg_memRr_i_idu <= memRr_i;
-        reg_w_mask_i_idu <= w_mask_i;
-        reg_r_mask_i_idu <= r_mask_i;
-        reg_regaData_i_idu <= regaData_i;
-        reg_regbData_i_idu <= regbData_i;
-        reg_regcWr_i_idu <= regcWr_i;
-        reg_regcAddr_i_idu <= regcAddr_i;
-        reg_rt_data_i_idu <= rt_data_i;
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
+            reg_op_i_idu <= 6'd0;
+            reg_memWr_i_idu <= 1'b0;
+            reg_memRr_i_idu <= 1'b0;
+            reg_w_mask_i_idu <= 4'd0;
+            reg_r_mask_i_idu <= 4'd0;
+            reg_regaData_i_idu <= 32'd0;
+            reg_regbData_i_idu <= 32'd0;
+            reg_regcWr_i_idu <= 1'b0;
+            reg_regcAddr_i_idu <= 5'd0;
+            reg_rt_data_i_idu <= 32'd0;
+        end
+        else begin
+            reg_op_i_idu <= op_i;
+            reg_memWr_i_idu <= memWr_i;
+            reg_memRr_i_idu <= memRr_i;
+            reg_w_mask_i_idu <= w_mask_i;
+            reg_r_mask_i_idu <= r_mask_i;
+            reg_regaData_i_idu <= regaData_i;
+            reg_regbData_i_idu <= regbData_i;
+            reg_regcWr_i_idu <= regcWr_i;
+            reg_regcAddr_i_idu <= regcAddr_i;
+            reg_rt_data_i_idu <= rt_data_i;
+        end
     end
 
     wire [5:0] exu_op;
@@ -76,18 +90,18 @@ module EXU (
     wire [4:0] exu_regcAddr;
     wire [31:0] exu_rt_data;
 
-    assign exu_op = reg_op_i_idu;
-    assign exu_memWr = reg_memWr_i_idu;
-    assign exu_memRr = reg_memRr_i_idu;
-    assign exu_w_mask = reg_w_mask_i_idu;
-    assign exu_r_mask = reg_r_mask_i_idu;
-    assign exu_regaData = reg_regaData_i_idu;
-    assign exu_regbData = reg_regbData_i_idu;
-    assign exu_regcWr = reg_regcWr_i_idu;
-    assign exu_regcAddr = reg_regcAddr_i_idu;
-    assign exu_rt_data = reg_rt_data_i_idu;
+    assign exu_op = (op_i == 0) ? 6'd0 : reg_op_i_idu;
+    assign exu_memWr = (op_i == 0) ? 1'd0 : reg_memWr_i_idu;
+    assign exu_memRr = (op_i == 0) ? 1'd0 : reg_memRr_i_idu;
+    assign exu_w_mask = (op_i == 0) ? 4'd0 : reg_w_mask_i_idu;
+    assign exu_r_mask = (op_i == 0) ? 4'd0 : reg_r_mask_i_idu;
+    assign exu_regaData = (op_i == 0) ? 32'd0 : reg_regaData_i_idu;
+    assign exu_regbData = (op_i == 0) ? 32'd0 : reg_regbData_i_idu;
+    assign exu_regcWr = (op_i == 0) ? 1'd0 : reg_regcWr_i_idu;
+    assign exu_regcAddr = (op_i == 0) ? 5'd0 : reg_regcAddr_i_idu;
+    assign exu_rt_data = (op_i == 0) ? 32'd0 : reg_rt_data_i_idu;
 
-    
+
     reg [31:0] alu_out;
 
     // WB

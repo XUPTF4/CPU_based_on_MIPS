@@ -168,6 +168,7 @@ module CPU (
             // for HiLo
             .rLoData_i(hilo_rLoData),
             .rHiData_i(hilo_rHiData),
+
             .wLoData(exu_wLoData),
             .wlo(exu_wlo),
             .wHiData(exu_wHiData),

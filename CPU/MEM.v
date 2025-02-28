@@ -8,7 +8,7 @@ module MEM (
         input wire [4:0] regcAddr_i,
         input wire regcWr_i,            // 寄存器写使能信号
 
-        output wire [31:0] regData,     //<---|
+        output reg [31:0] regData,     //<---|
         output wire [4:0] regAddr,      //    |
         output wire regWr,              //    |
         // MEM                          //    |
@@ -22,16 +22,21 @@ module MEM (
 
         output wire [31:0] memAddr,
         output wire [31:0] wtData,
-   
+
         output wire memCe,
-        output reg [0:0] memWr,         // 内存写使能 (输出信号)
-        output reg [0:0] memRr,         // 内存读使能 (输出信号)
-        output reg [3:0] w_mask,        // w_mask (输出信号)
-        output reg [3:0] r_mask         // r_mask (输出信号)
+        output wire [0:0] memWr,         // 内存写使能 (输出信号)
+        output wire [0:0] memRr,         // 内存读使能 (输出信号)
+        output wire [3:0] w_mask,        // w_mask (输出信号)
+        output wire [3:0] r_mask         // r_mask (输出信号)
     );
 
     // WBU
-    assign regData = memRr_i ? rdData_i : regcData_i; // 如果读内存，那么 WBU 输出 rdData_i;
+    always @(*) begin
+        regData = regcData_i;  // 默认值
+        if (memRr_i) begin
+            regData = rdData_i;
+        end
+    end
     assign regAddr = regcAddr_i;
 
     assign regWr = regcWr_i;

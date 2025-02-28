@@ -63,7 +63,7 @@ module RegFile (
 
         end
         else if (we) begin
-            registers[wAddr] <= wData;  // 写操作
+            registers[wAddr] = wData;  // 写操作
         end
     end
 

@@ -57,6 +57,9 @@ module CPU (
     wire [4:0] idu_regcAddr;        // WB 数据地址
     wire [31:0] idu_rt_data_o;      // load 指令写入的地址，for WB
 
+    wire [31:0] idu_inst_debug;
+    wire [31:0] idu_pc_debug;
+
     // EXU
     wire [31:0] exu_regcData;       // 寄存器写数据
     wire [4:0] exu_regcAddr;        // 寄存器写地址
@@ -76,6 +79,16 @@ module CPU (
     wire [31:0] exu_wHiData;
     wire exu_whi;
 
+    wire [31:0] exu_inst_debug;
+    wire [31:0] exu_pc_debug;
+
+    // 数据相关
+    wire exu_exu_regWr;
+    wire [31:0] exu_exu_data;
+    wire [4:0] exu_exu_regAddr;
+
+
+
     // MEM
     wire [31:0] mem_regData;        // 寄存器数据 (输出信号)
     wire [4:0] mem_regAddr;         // 寄存器地址 (输出信号)
@@ -89,10 +102,23 @@ module CPU (
     wire [3:0] mem_w_mask;          // 写掩码 (输出信号)
     wire [3:0] mem_r_mask;          // 读掩码 (输出信号)
 
+    wire [31:0] mem_inst_debug;
+    wire [31:0] mem_pc_debug;
+
+    // 数据相关
+    wire mem_mem_regWr;
+    wire [31:0] mem_mem_data;
+    wire [4:0] mem_mem_regAddr;
+
     // WBU
     wire wbu_we;
     wire [4:0] wbu_wAddr;
     wire [31:0] wbu_wData;
+
+    // 数据相关
+    wire wbu_wbu_regWr;
+    wire [31:0] wbu_wbu_data;
+    wire [4:0] wbu_wbu_regAddr;
 
     // RegFile
     wire [31:0] regs_regaData;      // 读端口 A 数据
@@ -167,7 +193,19 @@ module CPU (
             .r_mask(idu_r_mask),
             .regcWr(idu_regcWr),
             .regcAddr(idu_regcAddr),
-            .rt_data_o(idu_rt_data_o)
+            .rt_data_o(idu_rt_data_o),
+            .inst_debug(idu_inst_debug),
+            .pc_debug(idu_pc_debug),
+
+            .exu_regWr(exu_exu_regWr),
+            .exu_data(exu_exu_data),
+            .exu_regAddr(exu_exu_regAddr),
+            .mem_regWr(mem_mem_regWr),
+            .mem_data(mem_mem_data),
+            .mem_regAddr(mem_mem_regAddr),
+            .wbu_regWr(wbu_wbu_regWr),
+            .wbu_data(wbu_wbu_data),
+            .wbu_regAddr(wbu_wbu_regAddr)
         );
 
     EXU exu(
@@ -203,7 +241,17 @@ module CPU (
             .wLoData(exu_wLoData),
             .wlo(exu_wlo),
             .wHiData(exu_wHiData),
-            .whi(exu_whi)
+            .whi(exu_whi),
+
+            // debug
+            .inst_debug_i(idu_inst_debug),
+            .pc_debug_i(idu_pc_debug),
+            .inst_debug(exu_inst_debug),
+            .pc_debug(exu_pc_debug),
+
+            .exu_regWr(exu_exu_regWr),
+            .exu_data(exu_exu_data),
+            .exu_regAddr(exu_exu_regAddr)
         );
     MEM mem(
             .clk(clk),
@@ -230,7 +278,17 @@ module CPU (
             .memWr(mem_memWr),
             .memRr(mem_memRr),
             .w_mask(mem_w_mask),
-            .r_mask(mem_r_mask)
+            .r_mask(mem_r_mask),
+
+            // debug
+            .inst_debug_i(exu_inst_debug),
+            .pc_debug_i(exu_pc_debug),
+            .inst_debug(mem_inst_debug),
+            .pc_debug(mem_pc_debug),
+
+            .mem_regWr(mem_mem_regWr),
+            .mem_data(mem_mem_data),
+            .mem_regAddr(mem_mem_regAddr)
         );
     // output declaration of module DataMem
 
@@ -255,7 +313,15 @@ module CPU (
            .regData(mem_regData),
            .we(wbu_we),
            .wAddr(wbu_wAddr),
-           .wData(wbu_wData)
+           .wData(wbu_wData),
+
+           // debug
+           .inst_debug_i(mem_inst_debug),
+           .pc_debug_i(mem_pc_debug),
+
+           .wbu_regWr(wbu_wbu_regWr),
+           .wbu_data(wbu_wbu_data),
+           .wbu_regAddr(wbu_wbu_regAddr)
        );
 
     HiLo hilo(

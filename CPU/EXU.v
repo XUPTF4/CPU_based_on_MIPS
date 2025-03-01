@@ -30,6 +30,9 @@ module EXU (
         input wire [4:0] regcAddr_i,        // WB 数据地址
         input wire [31:0] rt_data_i,        // store 指令写入的数据，for MEM
 
+        input wire [31:0] inst_debug_i,         // 用于 debug 的监视信号
+        input wire [31:0] pc_debug_i,
+
         // HiLo
         input [31:0] rLoData_i,
         input [31:0] rHiData_i,
@@ -37,7 +40,15 @@ module EXU (
         output reg [31:0] wLoData,
         output reg wlo,
         output reg [31:0] wHiData,
-        output reg whi
+        output reg whi,
+
+        output wire [31:0] inst_debug,         // 用于 debug 的监视信号
+        output wire [31:0] pc_debug,
+
+        // 数据相关
+        output wire exu_regWr,
+        output wire [31:0] exu_data,
+        output wire [4:0] exu_regAddr
 
     );
     // 寄存器组
@@ -52,6 +63,11 @@ module EXU (
     reg [4:0] reg_regcAddr_i_idu;
     reg [31:0] reg_rt_data_i_idu;
 
+    reg [31:0] reg_inst_debug;
+    reg [31:0] reg_pc_debug;
+
+
+
     always @(posedge clk or posedge rst) begin
         if(rst) begin
             reg_op_i_idu <= 6'd0;
@@ -64,6 +80,9 @@ module EXU (
             reg_regcWr_i_idu <= 1'b0;
             reg_regcAddr_i_idu <= 5'd0;
             reg_rt_data_i_idu <= 32'd0;
+
+            reg_inst_debug <= 32'd0;
+            reg_pc_debug <= 32'd0;
         end
         else begin
             reg_op_i_idu <= op_i;
@@ -76,6 +95,9 @@ module EXU (
             reg_regcWr_i_idu <= regcWr_i;
             reg_regcAddr_i_idu <= regcAddr_i;
             reg_rt_data_i_idu <= rt_data_i;
+
+            reg_inst_debug <= inst_debug_i;
+            reg_pc_debug <= pc_debug_i;
         end
     end
 
@@ -90,6 +112,9 @@ module EXU (
     wire [4:0] exu_regcAddr;
     wire [31:0] exu_rt_data;
 
+    wire [31:0] exu_inst_debug;
+    wire [31:0] exu_pc_debug;
+
     assign exu_op = (op_i == 0) ? 6'd0 : reg_op_i_idu;
     assign exu_memWr = (op_i == 0) ? 1'd0 : reg_memWr_i_idu;
     assign exu_memRr = (op_i == 0) ? 1'd0 : reg_memRr_i_idu;
@@ -101,18 +126,26 @@ module EXU (
     assign exu_regcAddr = (op_i == 0) ? 5'd0 : reg_regcAddr_i_idu;
     assign exu_rt_data = (op_i == 0) ? 32'd0 : reg_rt_data_i_idu;
 
+    assign exu_inst_debug = reg_inst_debug;
+    assign exu_pc_debug = reg_pc_debug;
+
+
+    // debug 信号
+    assign inst_debug = exu_inst_debug;
+    assign pc_debug = exu_pc_debug;
+
 
     reg [31:0] alu_out;
 
     // WB
     assign regcAddr = exu_regcAddr;
-    assign regcWr = rst ? 1'b0 : exu_regcWr;
+    assign regcWr = exu_regcWr;
 
     // 内存信号
     assign memAddr = alu_out; // 如果是 load：OK；如果是 store：
     assign memData = exu_rt_data; // 那也 OK
-    assign readWr = rst ? 1'b0 : exu_memRr;
-    assign writeWr = rst ? 1'b0 : exu_memWr;
+    assign readWr = exu_memRr;
+    assign writeWr = exu_memWr;
     assign rmask = exu_r_mask;
     assign wmask = exu_w_mask;
 
@@ -243,5 +276,10 @@ module EXU (
             end
         endcase
     end
+
+    // 解决数据相关
+    assign exu_regWr = regcWr;
+    assign exu_data = regcData;
+    assign exu_regAddr = regcAddr;
 
 endmodule

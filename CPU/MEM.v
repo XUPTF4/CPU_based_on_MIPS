@@ -19,6 +19,9 @@ module MEM (
         input wire [3:0] w_mask_i,      // w_mask (输入信号)
         input wire [3:0] r_mask_i,      // r_mask (输入信号)
 
+        input wire [31:0] inst_debug_i,         // 用于 debug 的监视信号
+        input wire [31:0] pc_debug_i,
+
         output wire [31:0] memAddr,
         output wire [31:0] wtData,
 
@@ -26,7 +29,15 @@ module MEM (
         output wire [0:0] memWr,         // 内存写使能 (输出信号)
         output wire [0:0] memRr,         // 内存读使能 (输出信号)
         output wire [3:0] w_mask,        // w_mask (输出信号)
-        output wire [3:0] r_mask         // r_mask (输出信号)
+        output wire [3:0] r_mask,         // r_mask (输出信号)
+
+        output wire [31:0] inst_debug,         // 用于 debug 的监视信号
+        output wire [31:0] pc_debug,
+
+        // 数据相关
+        output wire mem_regWr,
+        output wire [31:0] mem_data,
+        output wire [4:0] mem_regAddr
     );
     // 寄存器组
     reg [31:0] reg_regcData_i_exu;
@@ -41,6 +52,9 @@ module MEM (
     reg [3:0] reg_w_mask_exu;
     reg [3:0] reg_r_mask_i_idu;
 
+    reg [31:0] reg_inst_debug;
+    reg [31:0] reg_pc_debug;
+
     always @(posedge clk or posedge rst) begin
         if(rst) begin
             reg_regcData_i_exu <= 32'd0;
@@ -53,6 +67,9 @@ module MEM (
             reg_memRr_i_exu <= 1'b0;
             reg_w_mask_exu <= 4'd0;
             reg_r_mask_i_idu <= 4'd0;
+
+            reg_inst_debug <= 32'd0;
+            reg_pc_debug <= 32'd0;
         end
         else begin
             reg_regcData_i_exu <= regcData_i;
@@ -65,6 +82,9 @@ module MEM (
             reg_memRr_i_exu <= memRr_i;
             reg_w_mask_exu <= w_mask_i;
             reg_r_mask_i_idu <= r_mask_i;
+
+            reg_inst_debug <= inst_debug_i;
+            reg_pc_debug <= pc_debug_i;
         end
     end
 
@@ -80,6 +100,9 @@ module MEM (
     wire [3:0] mem_w_mask;
     wire [3:0] mem_r_mask;
 
+    wire [31:0] mem_inst_debug;
+    wire [31:0] mem_pc_debug;
+
     assign mem_regcData = reg_regcData_i_exu;
     assign mem_regcAddr = reg_regcAddr_i_exu;
     assign mem_regcWr = reg_regcWr_i_exu;
@@ -91,6 +114,13 @@ module MEM (
     assign mem_memRr = reg_memRr_i_exu;
     assign mem_w_mask = reg_w_mask_exu;
     assign mem_r_mask = reg_r_mask_i_idu;
+
+    assign mem_inst_debug = reg_inst_debug;
+    assign mem_pc_debug = reg_pc_debug;
+
+    // debug 信号
+    assign inst_debug = mem_inst_debug;
+    assign pc_debug = mem_pc_debug;
 
 
 
@@ -116,5 +146,11 @@ module MEM (
     assign w_mask = mem_w_mask;
     assign r_mask = mem_r_mask;
     assign memCe = rst? 1'b0 : mem_memRr | mem_memWr;
+
+    // 解决数据相关
+    assign mem_regWr = mem_regcWr;
+    assign mem_data = mem_regcData;
+    assign mem_regAddr =mem_regcAddr;
+
 endmodule
 

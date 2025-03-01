@@ -28,9 +28,28 @@ module IDU (
         output reg [3:0] r_mask,        // r_mask
         output reg [0:0] regcWr,        // 寄存器写使能
         output reg [4:0] regcAddr,      // WB 数据地址
-        output reg [31:0] rt_data_o     // load 指令写入的地址，for WBU
+        output reg [31:0] rt_data_o,     // load 指令写入的地址，for WBU
 
+        output wire [31:0] inst_debug,         // 用于 debug 的监视信号
+        output wire [31:0] pc_debug,
+
+        // 直通解决数据相关
+        // 从 EXU 窃取
+        input wire exu_regWr,
+        input wire [31:0] exu_data,
+        input wire [4:0] exu_regAddr,
+
+        // 从 MEM 窃取
+        input wire mem_regWr,
+        input wire [31:0] mem_data,
+        input wire [4:0] mem_regAddr,
+
+        // 从 WBU 窃取
+        input wire wbu_regWr,
+        input wire [31:0] wbu_data,
+        input wire [4:0] wbu_regAddr
     );
+
     // 寄存器组
     reg [31:0] reg_pc_ifu;
     reg [31:0] reg_inst_ifu;
@@ -43,23 +62,25 @@ module IDU (
         end
         else begin
             reg_pc_ifu <= pc;
-            reg_inst_ifu <= inst;
+            // 如果当前是跳转，那么下一条指令置空
+            reg_inst_ifu <= jCe ? 32'd0 :inst;
         end
     end
 
-    wire [31:0] idu_inst;
-    wire [31:0] idu_pc;
+    reg [31:0] idu_inst;
+    reg [31:0] idu_pc;
 
-    assign idu_inst = (inst == 32'd0) ? 32'd0: reg_inst_ifu;
+    assign idu_inst = reg_inst_ifu;
     assign idu_pc = reg_pc_ifu;
 
+    // debug 信号
+    assign inst_debug = idu_inst;
+    assign pc_debug = idu_pc;
 
 
     // 提取指令字段
     wire [31:0] pc_plus_4;
     assign pc_plus_4 = idu_pc + 32'd4;
-
-
 
     wire [4:0] rs_addr = idu_inst[25:21];
     wire [4:0] rt_addr = idu_inst[20:16];
@@ -93,6 +114,44 @@ module IDU (
     assign regaAddr = is_break ? 5'd4: rs_addr; // 如果是 break，那么需要读取 4 号寄存器
     assign regbAddr = rt_addr;
 
+    // 判断是否数据相关
+    // 越靠近 idu 越优先
+    reg conflict_regaData_tag;
+    reg conflict_regbData_tag;
+    reg [31:0] conflict_regaData;
+    reg [31:0] conflict_regbData;
+    always @(*) begin
+        if (exu_regWr && (rs_addr == exu_regAddr)) begin
+            conflict_regaData = exu_data;
+        end
+        else if (mem_regWr && (rs_addr == mem_regAddr)) begin
+            conflict_regaData = mem_data;
+        end
+        if (wbu_regWr && (rs_addr == wbu_regAddr)) begin
+            conflict_regaData = exu_data;
+        end
+        else begin
+            conflict_regaData = regaData_i;  // 默认值
+        end
+    end
+
+    always @(*) begin
+        if (exu_regWr && (rt_addr == exu_regAddr)) begin
+            conflict_regbData = exu_data;
+        end
+        else if (mem_regWr && (rt_addr == mem_regAddr)) begin
+            conflict_regbData = mem_data;
+        end
+        if (wbu_regWr && (rt_addr == wbu_regAddr)) begin
+            conflict_regbData = exu_data;
+        end
+        else begin
+            conflict_regbData = regbData_i;  // 默认值
+        end
+    end
+
+
+
 
 
     // 解析信号
@@ -116,7 +175,7 @@ module IDU (
 
     always @(*) begin
         // LOAD 地址
-        rt_data_o = regbData_i; // rt 中的数据需要传到 mem，对于 Store
+        rt_data_o = conflict_regaData; // rt 中的数据需要传到 mem，对于 Store
 
         // 20 条 I 型指令
         is_add = 1'b0;
@@ -850,7 +909,7 @@ module IDU (
     always @(*) begin
         case (OP1_SEL)
             `OP1_RS:
-                regaData = regaData_i;
+                regaData = conflict_regaData;
             `OP1_IM_SA:
                 regaData = u_sa; // sll, srl, sra
             `OP1_IMS:
@@ -867,7 +926,7 @@ module IDU (
     always @(*) begin
         case (OP2_SEL)
             `OP2_RT:
-                regbData = regbData_i;
+                regbData = conflict_regbData;
             `OP2_IMS:
                 regbData = s_imm; // 符号扩展
             `OP2_IMZ:
@@ -890,17 +949,17 @@ module IDU (
     always @(*) begin
         case (op)
             `ALU_BEQ:
-                jCe = (regaData_i == regbData_i);
+                jCe = (conflict_regaData == conflict_regbData);
             `ALU_BNE:
-                jCe = (regaData_i != regbData_i);
+                jCe = (conflict_regaData != conflict_regbData);
             `ALU_BGEZAL:
-                jCe = (regaData_i[31] == 1'b0); // 符号位如果为 0，就是非负，那么一定大于等于 0
+                jCe = (conflict_regaData[31] == 1'b0); // 符号位如果为 0，就是非负，那么一定大于等于 0
             `ALU_BLEZ:
-                jCe = (regaData_i[31] == 1'b1 || regaData_i == 32'd0); // 小于等于 0 跳转
+                jCe = (conflict_regaData[31] == 1'b1 || conflict_regaData == 32'd0); // 小于等于 0 跳转
             `ALU_BGTZ:
-                jCe = (regaData_i[31] == 1'b0 || regaData_i != 32'd0); // 大于 0 跳转
+                jCe = (conflict_regaData[31] == 1'b0 || conflict_regaData != 32'd0); // 大于 0 跳转
             `ALU_BLTZ:
-                jCe = (regaData_i[31] == 1'b1); // 小于 0 跳转
+                jCe = (conflict_regaData[31] == 1'b1); // 小于 0 跳转
             `ALU_J:
                 jCe = 1'b1;
             `ALU_JAL:
@@ -928,11 +987,11 @@ module IDU (
                 `ALU_J:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
                 `ALU_JR:
-                    jAddr = regaData_i; // rs 中的数据
+                    jAddr = conflict_regaData; // rs 中的数据
                 `ALU_JAL:
                     jAddr = {pc_plus_4[31:28],address[25:0],2'b00};
                 `ALU_JALR:
-                    jAddr = regaData_i; // rs 中的数据
+                    jAddr = conflict_regaData; // rs 中的数据
                 `ALU_BEQ:
 
                     jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽

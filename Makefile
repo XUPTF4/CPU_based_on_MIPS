@@ -7,7 +7,7 @@ TOP = CPU
 CPPSRC = $(CPU_HOME)/Verilator/*.c*
 SRC = $(CPPSRC)
 
-V_FLAGS = --cc $(VSRC) --top $(TOP) --exe $(SRC) --trace-fst -I$(SV_SRC)
+V_FLAGS = --cc $(VSRC) --top $(TOP) --exe $(SRC) --trace-fst -I$(SV_SRC) 
 
 OBJ_DIR = obj_dir
 

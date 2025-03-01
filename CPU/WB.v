@@ -16,8 +16,8 @@ module WB (
         // 数据相关
         output wire wbu_regWr,
         output wire [31:0] wbu_data,
-        output wire [4:0] wbu_regAddr
-
+        output wire [4:0] wbu_regAddr,
+        output reg is_break
     );
 
     // 寄存器组
@@ -42,7 +42,6 @@ module WB (
             reg_regWr_mem <= regWr;
             reg_regAddr_mem <= regAddr;
             reg_regData_mem <= regData;
-
 
             reg_inst_debug <= inst_debug_i;
             reg_pc_debug <= pc_debug_i;
@@ -72,5 +71,16 @@ module WB (
     assign wbu_data = wb_regData;
     assign wbu_regAddr =wb_regAddr;
 
+    // 如果 wbu 接收到了 break 指令，说明程序已经执行结束
+    // 此时检测 X4 寄存器的值就行了
+
+    always @(*) begin
+        casez(reg_inst_debug)
+            32'b000000_?????_?????_?????_?????_001101:
+                is_break = 1'b1;
+            default:
+                is_break = 1'b0;
+        endcase
+    end
 endmodule
 

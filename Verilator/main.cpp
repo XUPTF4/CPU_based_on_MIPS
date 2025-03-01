@@ -49,8 +49,10 @@ int cpu_exec(uint64_t n) {
 
     while (n) {
         stepi();
-        if (top->rootp->CPU__DOT__idu__DOT__is_break) {
-            if (top->rootp->CPU__DOT__exu__DOT__reg_regaData_i_idu == 1) {  // 标记退出信号
+        if (top->rootp->CPU__DOT__isbreak__DOT__reg_isBreak) {
+            printf("x4:%d", top->rootp->CPU__DOT__regs__DOT__registers[4]);
+            if (top->rootp->CPU__DOT__regs__DOT__registers[4] ==
+                1) {  // 标记退出信号
                 printf("\n\033[31mHIT bad trap!\033[0m\n");
 
                 ret = 1;
@@ -59,7 +61,6 @@ int cpu_exec(uint64_t n) {
 
                 ret = 0;
             }
-
             // 计数器
             gettimeofday(&end, NULL);
             elapsed_time = (end.tv_sec - start.tv_sec) +
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     reset(1);
 
-    int ret = cpu_exec(200);
+    int ret = cpu_exec(-1);
 
     return ret;
 }

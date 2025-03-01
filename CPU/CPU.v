@@ -87,8 +87,6 @@ module CPU (
     wire [31:0] exu_exu_data;
     wire [4:0] exu_exu_regAddr;
 
-
-
     // MEM
     wire [31:0] mem_regData;        // 寄存器数据 (输出信号)
     wire [4:0] mem_regAddr;         // 寄存器地址 (输出信号)
@@ -115,6 +113,8 @@ module CPU (
     wire [4:0] wbu_wAddr;
     wire [31:0] wbu_wData;
 
+    wire wbu_is_break;
+
     // 数据相关
     wire wbu_wbu_regWr;
     wire [31:0] wbu_wbu_data;
@@ -133,6 +133,8 @@ module CPU (
     // HiLo
     wire [31:0] hilo_rLoData;  // 低位数据输出
     wire [31:0] hilo_rHiData;  // 高位数据输出
+
+
 
 
     IFU ifu(
@@ -321,7 +323,8 @@ module CPU (
 
            .wbu_regWr(wbu_wbu_regWr),
            .wbu_data(wbu_wbu_data),
-           .wbu_regAddr(wbu_wbu_regAddr)
+           .wbu_regAddr(wbu_wbu_regAddr),
+           .is_break(wbu_is_break)
        );
 
     HiLo hilo(
@@ -335,5 +338,10 @@ module CPU (
              .rLoData(hilo_rLoData),
              .rHiData(hilo_rHiData)
          );
+
+    IsBreak isbreak(
+        .clk(clk),
+        .isBreak(wbu_is_break)
+    );
 
 endmodule

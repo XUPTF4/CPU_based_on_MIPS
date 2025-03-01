@@ -46,7 +46,7 @@ module MEM (
 
     reg [31:0] reg_memAddr_i_exu;
     reg [31:0] reg_memData_i_exu;
-    reg [31:0] reg_rdData_i_exu;
+    // reg [31:0] reg_rdData_i_exu;
     reg [0:0] reg_memWr_i_exu;
     reg [0:0] reg_memRr_i_exu;
     reg [3:0] reg_w_mask_exu;
@@ -62,7 +62,7 @@ module MEM (
             reg_regcWr_i_exu <= 1'b0;
             reg_memAddr_i_exu <= 32'd0;
             reg_memData_i_exu <= 32'd0;
-            reg_rdData_i_exu <= 32'd0;
+            // reg_rdData_i_exu <= 32'd0;
             reg_memWr_i_exu <= 1'b0;
             reg_memRr_i_exu <= 1'b0;
             reg_w_mask_exu <= 4'd0;
@@ -77,7 +77,7 @@ module MEM (
             reg_regcWr_i_exu <= regcWr_i;
             reg_memAddr_i_exu <= memAddr_i;
             reg_memData_i_exu <= memData_i;
-            reg_rdData_i_exu <= rdData_i;
+            // reg_rdData_i_exu <= rdData_i;
             reg_memWr_i_exu <= memWr_i;
             reg_memRr_i_exu <= memRr_i;
             reg_w_mask_exu <= w_mask_i;
@@ -109,7 +109,7 @@ module MEM (
 
     assign mem_memAddr = reg_memAddr_i_exu;
     assign mem_memData = reg_memData_i_exu;
-    assign mem_rdData = reg_rdData_i_exu;
+    assign mem_rdData = rdData_i; // 这个不能推迟
     assign mem_memWr = reg_memWr_i_exu;
     assign mem_memRr = reg_memRr_i_exu;
     assign mem_w_mask = reg_w_mask_exu;
@@ -149,7 +149,7 @@ module MEM (
 
     // 解决数据相关
     assign mem_regWr = mem_regcWr;
-    assign mem_data = mem_regcData;
+    assign mem_data = regData;
     assign mem_regAddr =mem_regcAddr;
 
 endmodule

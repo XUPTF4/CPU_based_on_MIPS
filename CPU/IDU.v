@@ -63,7 +63,8 @@ module IDU (
         else begin
             reg_pc_ifu <= pc;
             // 如果当前是跳转，那么下一条指令置空
-            reg_inst_ifu <= jCe ? 32'd0 :inst;
+            // reg_inst_ifu <= jCe ? 32'd0 :inst;
+            reg_inst_ifu <= inst;
         end
     end
 
@@ -111,7 +112,7 @@ module IDU (
     assign regaRd = 1'b1;
     assign regbRd = 1'b1;
     // RegFile 地址
-    assign regaAddr = is_break ? 5'd4: rs_addr; // 如果是 break，那么需要读取 4 号寄存器
+    assign regaAddr = rs_addr;
     assign regbAddr = rt_addr;
 
     // 判断是否数据相关
@@ -123,30 +124,38 @@ module IDU (
     always @(*) begin
         if (exu_regWr && (rs_addr == exu_regAddr)) begin
             conflict_regaData = exu_data;
+            conflict_regaData_tag = 1'b1;
         end
         else if (mem_regWr && (rs_addr == mem_regAddr)) begin
             conflict_regaData = mem_data;
+            conflict_regaData_tag = 1'b1;
         end
-        if (wbu_regWr && (rs_addr == wbu_regAddr)) begin
-            conflict_regaData = exu_data;
+        else if (wbu_regWr && (rs_addr == wbu_regAddr)) begin
+            conflict_regaData = wbu_data;
+            conflict_regaData_tag = 1'b1;
         end
         else begin
             conflict_regaData = regaData_i;  // 默认值
+            conflict_regaData_tag = 1'b0;
         end
     end
 
     always @(*) begin
         if (exu_regWr && (rt_addr == exu_regAddr)) begin
             conflict_regbData = exu_data;
+            conflict_regbData_tag = 1'b1;
         end
         else if (mem_regWr && (rt_addr == mem_regAddr)) begin
             conflict_regbData = mem_data;
+            conflict_regbData_tag = 1'b1;
         end
-        if (wbu_regWr && (rt_addr == wbu_regAddr)) begin
-            conflict_regbData = exu_data;
+        else if (wbu_regWr && (rt_addr == wbu_regAddr)) begin
+            conflict_regbData = wbu_data;
+            conflict_regbData_tag = 1'b1;
         end
         else begin
             conflict_regbData = regbData_i;  // 默认值
+            conflict_regbData_tag = 1'b0;
         end
     end
 
@@ -175,7 +184,7 @@ module IDU (
 
     always @(*) begin
         // LOAD 地址
-        rt_data_o = conflict_regaData; // rt 中的数据需要传到 mem，对于 Store
+        rt_data_o = conflict_regbData; // rt 中的数据需要传到 mem，对于 Store
 
         // 20 条 I 型指令
         is_add = 1'b0;
@@ -764,7 +773,7 @@ module IDU (
 
                 is_break: begin
                     op = `ALU_BREAK;
-                    OP1_SEL = `OP1_RS; // 技巧，将 RS 作为 break 的信号
+                    OP1_SEL = `OP1_X; // 技巧，将 RS 作为 break 的信号
                     OP2_SEL = `OP2_X;
                     memWr = `WMEN_X;
                     memRr = `RMEN_X;
@@ -917,7 +926,7 @@ module IDU (
             `OP1_LUI:
                 regaData = u_imm << 16; // 高 16 位放入 rt
             `OP1_PC:
-                regaData = pc;
+                regaData = idu_pc;
             default:
                 regaData = 0;
         endcase
@@ -938,7 +947,7 @@ module IDU (
             `OP2_IM_OFFSET_S:
                 regbData = s_offset; // LW,SW
             `OP2_PC:
-                regbData = pc;
+                regbData = idu_pc;
 
             default:
                 regbData = 0;
@@ -1010,11 +1019,5 @@ module IDU (
             endcase
         end
     end
-
-
-
-    // 将解析到的信号发射到 EXU 中处理，EXU 中如果需要，再添加到额外的信号到 IO 接口
-
-
 
 endmodule

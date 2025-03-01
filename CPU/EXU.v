@@ -115,16 +115,16 @@ module EXU (
     wire [31:0] exu_inst_debug;
     wire [31:0] exu_pc_debug;
 
-    assign exu_op = (op_i == 0) ? 6'd0 : reg_op_i_idu;
-    assign exu_memWr = (op_i == 0) ? 1'd0 : reg_memWr_i_idu;
-    assign exu_memRr = (op_i == 0) ? 1'd0 : reg_memRr_i_idu;
-    assign exu_w_mask = (op_i == 0) ? 4'd0 : reg_w_mask_i_idu;
-    assign exu_r_mask = (op_i == 0) ? 4'd0 : reg_r_mask_i_idu;
-    assign exu_regaData = (op_i == 0) ? 32'd0 : reg_regaData_i_idu;
-    assign exu_regbData = (op_i == 0) ? 32'd0 : reg_regbData_i_idu;
-    assign exu_regcWr = (op_i == 0) ? 1'd0 : reg_regcWr_i_idu;
-    assign exu_regcAddr = (op_i == 0) ? 5'd0 : reg_regcAddr_i_idu;
-    assign exu_rt_data = (op_i == 0) ? 32'd0 : reg_rt_data_i_idu;
+    assign exu_op =  reg_op_i_idu;
+    assign exu_memWr = reg_memWr_i_idu;
+    assign exu_memRr = reg_memRr_i_idu;
+    assign exu_w_mask = reg_w_mask_i_idu;
+    assign exu_r_mask = reg_r_mask_i_idu;
+    assign exu_regaData = reg_regaData_i_idu;
+    assign exu_regbData = reg_regbData_i_idu;
+    assign exu_regcWr = reg_regcWr_i_idu;
+    assign exu_regcAddr = reg_regcAddr_i_idu;
+    assign exu_rt_data = reg_rt_data_i_idu;
 
     assign exu_inst_debug = reg_inst_debug;
     assign exu_pc_debug = reg_pc_debug;
@@ -140,6 +140,7 @@ module EXU (
     // WB
     assign regcAddr = exu_regcAddr;
     assign regcWr = exu_regcWr;
+    assign regcData = alu_out;
 
     // 内存信号
     assign memAddr = alu_out; // 如果是 load：OK；如果是 store：
@@ -149,14 +150,12 @@ module EXU (
     assign rmask = exu_r_mask;
     assign wmask = exu_w_mask;
 
-
-    // `ALU
     always @(*) begin
         if (rst) begin
             alu_out = 32'b0; // 复位时 `ALU 输出为 0
         end
         else begin
-            case (op_i)
+            case (exu_op)
                 `ALU_ADD:
                     alu_out = exu_regaData + exu_regbData;
                 `ALU_LW:
@@ -169,7 +168,6 @@ module EXU (
                     alu_out = exu_regaData + exu_regbData; // JALR
                 `ALU_BGEZAL:
                     alu_out = exu_regaData + exu_regbData;
-
                 `ALU_SUB:
                     alu_out = exu_regaData - exu_regbData;
                 `ALU_AND:
@@ -204,7 +202,7 @@ module EXU (
     wire  [63:
            0] u_product = exu_regaData * exu_regbData;
     always @(*) begin
-        case(op_i)
+        case(exu_op)
             `ALU_MULT:begin
                 wLoData = s_product[31:0];   // LO寄存器写入低32位
                 wHiData = s_product[63:32];  // HI寄存器写入高32位
@@ -264,7 +262,7 @@ module EXU (
 
     // 数据移动指令
     always @(*) begin
-        case(op_i)
+        case(exu_op)
             `ALU_MFHI:begin
                 regcData = rHiData_i; // HI 寄存器写入 WB 数据
             end

@@ -1,55 +1,9 @@
 // 顶层模块
 module CPU (
-        input wire clk, // vivado 行为级仿真注释; vivado 实现、产生 bitstream 不要注释
-        input wire rst, // vivado 行为级仿真注释; vivado 实现、产生 bitstream 注释
-        output io_exit  // vivado 行为级仿真注释; vivado 实现、产生 bitstream 不要注释
+        input wire clk,
+        input wire rst
     );
-    
-    // =============vivado 实现、产生 bitstream 不要注释==========
-    //=============vivado 行为级仿真注释============
-    // 模拟输入信号
-    // reg clk;
-    // reg rst;
-    // reg rst_tag;
 
-    // always @(posedge clk) begin
-    //     if(!rst_tag) begin
-    //         rst <= 1'b1;
-    //         rst_tag <= 1'b1;
-    //     end
-    //     else begin
-    //         rst <= 1'b0;
-    //         rst_tag <= 1'b1;
-    //     end
-    // end
-    // assign io_exit = rst_tag;
-    //=================Vivado=================
-
-
-    // =============vivado 实现、产生 bitstream 不要注释==========
-    //=============vivado 行为级仿真不要注释============
-    // reg rst;
-    // reg rst_tag;
-    // initial begin
-    //     clk = 0;
-    //     forever
-    //         #5 clk = ~clk;  // 生成周期为 10ns 的时钟信号
-    // end
-    // initial begin
-    //     rst = 1;  // 初始化复位信号为高电平
-    //     @(posedge clk);
-    //     @(posedge clk);
-    //     @(posedge clk);
-    //     @(posedge clk);
-    //     @(posedge clk);
-    //     rst = 0;  // 释放复位信号
-    //     @(posedge clk);
-    //     @(posedge clk);
-    //     @(posedge clk);
-    //     @(posedge clk);
-    //     @(posedge clk);
-    // end
-    //=================Vivado=================
 
     // 信号连线
     // IFU

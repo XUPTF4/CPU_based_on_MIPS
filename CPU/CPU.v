@@ -3,8 +3,6 @@ module CPU (
         input wire clk,
         input wire rst
     );
-
-
     // 信号连线
     // IFU
     wire [31:0] ifu_pc;

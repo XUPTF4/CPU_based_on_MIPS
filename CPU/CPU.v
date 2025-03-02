@@ -1,9 +1,21 @@
 // 顶层模块
 module CPU (
         input wire clk,
-        input wire rst
+        output io_exit
     );
-
+    reg rst;
+    reg rst_tag;
+    always @(posedge clk) begin
+        if(!rst_tag) begin
+            rst <= 1'b1;
+            rst_tag <= 1'b1;
+        end
+        else begin
+            rst <= 1'b0;
+            rst_tag <= 1'b1;
+        end
+    end
+    assign io_exit = rst_tag;
 
     // 信号连线
     // IFU

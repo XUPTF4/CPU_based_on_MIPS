@@ -1,0 +1,17 @@
+0.6
+2018.3
+Dec  7 2018
+00:33:28
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/CPU.v,1740883666,verilog,,,,CPU,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/DataMem.v,1740881139,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/EXU.v,,DataMem,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/EXU.v,1740881605,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/HiLo.v,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/Helpers.v,EXU,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/Helpers.v,1740881125,verilog,,,,,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/HiLo.v,1740718872,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IDU.v,,HiLo,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IDU.v,1740881703,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IFU.v,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/Helpers.v,IDU,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IFU.v,1740881764,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/InstMem.v,,IFU,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/InstMem.v,1740881139,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IsBreak.v,,InstMem,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IsBreak.v,1740881139,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/MEM.v,,IsBreak,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/MEM.v,1740881139,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/RegFile.v,,MEM,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/RegFile.v,1740718872,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/WB.v,,RegFile,,,,,,,,
+//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/WB.v,1740881139,verilog,,//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/CPU.v,,WB,,,,,,,,
+C:/Vivado_projects/LONGSOON-huangchao/poreject/CPU_1/CPU_1.sim/sim_1/behav/xsim/glbl.v,1544155481,verilog,,,,glbl,,,,,,,,

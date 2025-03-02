@@ -1,0 +1,22 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/DataMem.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module DataMem
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/EXU.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module EXU
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/HiLo.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module HiLo
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IDU.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module IDU
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IFU.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module IFU
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/InstMem.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module InstMem
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IsBreak.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module IsBreak
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/MEM.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module MEM
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/RegFile.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module RegFile
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/WB.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module WB
+INFO: [VRFC 10-2263] Analyzing Verilog file "//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/CPU.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module CPU

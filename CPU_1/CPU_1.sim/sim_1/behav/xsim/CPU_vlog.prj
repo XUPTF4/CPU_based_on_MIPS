@@ -1,0 +1,19 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/DataMem.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/EXU.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/HiLo.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IDU.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IFU.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/InstMem.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/IsBreak.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/MEM.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/RegFile.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/WB.v" \
+"//Mac/Home/Downloads/CPU_based_on_MIPS/CPU/CPU.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

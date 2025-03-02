@@ -5,7 +5,7 @@ module IFU (
         input wire [31:0] jAddr,    // 跳转地址
         input wire jCe,             // 跳转使能
         output reg [31:0] pc,       // 程序计数器
-        output reg romCe           // 指令存储器使能信号
+        output wire romCe           // 指令存储器使能信号
     );
 
     // 状态机,使用时序电路

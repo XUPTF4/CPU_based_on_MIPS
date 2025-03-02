@@ -68,8 +68,8 @@ module IDU (
         end
     end
 
-    reg [31:0] idu_inst;
-    reg [31:0] idu_pc;
+    wire [31:0] idu_inst;
+    wire [31:0] idu_pc;
 
     assign idu_inst = reg_inst_ifu;
     assign idu_pc = reg_pc_ifu;

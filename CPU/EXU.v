@@ -140,7 +140,7 @@ module EXU (
     // WB
     assign regcAddr = exu_regcAddr;
     assign regcWr = exu_regcWr;
-    assign regcData = alu_out;
+    // assign regcData = alu_out;
 
     // 内存信号
     assign memAddr = alu_out; // 如果是 load：OK；如果是 store：

@@ -17,7 +17,7 @@ simu: clean
 	$(VERILATOR) $(V_FLAGS)
 
 build: simu
-	bear -- make -C $(OBJ_DIR) -f V$(TOP).mk -j10
+	bear -- make -C $(OBJ_DIR) -f V$(TOP).mk -j5
 
 run: build
 	$(EXE)

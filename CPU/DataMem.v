@@ -7,27 +7,17 @@ module DataMem(
     input memRr,                // 内存读使能
     input [3:0] w_mask,         // 写掩码
     input [3:0] r_mask,         // 读掩码
-    output reg [31:0] rdData    // 组合逻辑直接输出
+    output reg [31:0] rdData,    // 组合逻辑直接输出
+    output [31:0] seg7      // 数码管显示输出
 );
     reg [31:0] memory [0:1023]; // 4KB 内存
 // 初始化 memory
 
     initial begin
-        memory[0]  = 32'h00000065;
-        memory[1]  = 32'h00000067;
-        memory[2]  = 32'h0000006b;
-        memory[3]  = 32'h0000006d;
-        memory[4]  = 32'h00000071;
-        memory[5]  = 32'h0000007f;
-        memory[6]  = 32'h00000083;
-        memory[7]  = 32'h00000089;
-        memory[8]  = 32'h0000008b;
-        memory[9]  = 32'h00000095;
-        memory[10]  = 32'h00000000;
-        memory[11]  = 32'h00000000;
     end
 
     // 组合逻辑读操作：地址变化立即生效
+    assign seg7 = memory[1023]; // 直接输出
     always @(*) begin
         if (ce && memRr) begin
             case (r_mask)

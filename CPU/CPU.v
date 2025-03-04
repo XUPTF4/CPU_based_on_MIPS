@@ -1,8 +1,17 @@
 // 顶层模块
 module CPU (
         input wire clk,
-        input wire rst
+        input wire resetn,
+        // input [7:0] sw,
+        // output [15:0] led,
+        //  例如：这会亮最低位数码管
+        // num_scan_select = 8'b1111_1110;
+        output [7:0] num_scan_select,
+        output [7:0] num_seg // 要显示的数字
     );
+
+    wire rst;
+    assign rst = !resetn;
     // 信号连线
     // IFU
     wire [31:0] ifu_pc;
@@ -98,13 +107,22 @@ module CPU (
 
     // DataMem
     wire [31:0] dataMem_rdData;     // 输出给 MEM
+    wire [31:0] dataMem_seg7;       // 数码管输出
 
     // HiLo
     wire [31:0] hilo_rLoData;  // 低位数据输出
     wire [31:0] hilo_rHiData;  // 高位数据输出
 
+    // seg
+    wire [7:0] seg_num_scan_select;
+    wire [7:0] num_seg7;
 
-
+    Seg7 seg7(
+             .clk(clk),
+             .data(dataMem_seg7),
+             .num_scan_select(num_scan_select),
+             .num_seg7(num_seg)
+         );
 
     IFU ifu(
             .clk(clk),
@@ -272,7 +290,8 @@ module CPU (
                 .memRr(mem_memRr),
                 .w_mask(mem_w_mask),
                 .r_mask(mem_r_mask),
-                .rdData(dataMem_rdData) // 读出来的数据
+                .rdData(dataMem_rdData), // 读出来的数据
+                .seg7(dataMem_seg7)     // 数码管输出
             );
     // output declaration of module WB
 

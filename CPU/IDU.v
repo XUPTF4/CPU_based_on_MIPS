@@ -437,7 +437,6 @@ module IDU (
             regcWr = `REN_S;
             w_mask = `WMASK_X;
             r_mask = `RMASK_X;
-            regcAddr = 5'd0;
         end
         else begin
             case (1'b1)
@@ -451,8 +450,6 @@ module IDU (
                     w_mask = `WMASK_X;
                     r_mask = `RMASK_X;
 
-                    regcAddr = rd_addr;
-
                 end
                 is_addu: begin
                     op = `ALU_ADD;
@@ -463,8 +460,6 @@ module IDU (
                     regcWr = `REN_S;
                     w_mask = `WMASK_X;
                     r_mask = `RMASK_X;
-
-                    regcAddr = rd_addr;
 
                 end
                 is_sub: begin

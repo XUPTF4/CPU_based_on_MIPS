@@ -113,13 +113,6 @@ module CPU (
     wire [31:0] hilo_rLoData;  // 低位数据输出
     wire [31:0] hilo_rHiData;  // 高位数据输出
 
-    // seg
-    wire [7:0] seg_num_scan_select;
-    wire [7:0] num_seg7;
-
-    // led
-    wire [15:0] led_led;
-
     Seg7 seg7(
              .clk(clk),
              .data(dataMem_seg7),
@@ -129,7 +122,7 @@ module CPU (
 
     Led led_u(
         .led_data(dateMem_led_data),
-        .led(led_led)
+        .led(led)
     );
 
 

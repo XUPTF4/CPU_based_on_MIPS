@@ -2,15 +2,42 @@
 module CPU (
         input wire clk,
         input wire resetn,
+        // input wire rst,
         output [15:0] led,
         //  例如：这会亮最低位数码管
         // num_scan_select = 8'b1111_1110;
         output [7:0] num_scan_select,
-        output [7:0] num_seg // 要显示的数字
+        output [7:0] num_seg,// 要显示的数字
+        output lcd_rst,
+        output lcd_cs,
+        output lcd_rs,
+        output lcd_wr,
+        output lcd_rd,
+        inout[15:0] lcd_data_io,
+        output lcd_bl_ctr,
+        inout ct_int,
+        inout ct_sda,
+        output ct_scl,
+        output ct_rstn
     );
 
     wire rst;
     assign rst = !resetn;
+
+
+    reg[25:0] clk_div;
+    reg cpu_clk;
+    always @(posedge clk) begin
+        if (!resetn) begin
+            clk_div <= 26'd0;
+        end
+        else if(clk_div == 26'h3ffffff) begin
+            clk_div <= 0;
+            cpu_clk <= ~cpu_clk;
+        end
+        else
+            clk_div <= clk_div + 1;
+    end
     // 信号连线
     // IFU
     wire [31:0] ifu_pc;
@@ -41,7 +68,6 @@ module CPU (
     wire [31:0] exu_regcData;       // 寄存器写数据
     wire [4:0] exu_regcAddr;        // 寄存器写地址
     wire exu_regcWr;                // 寄存器写使能
-
 
 
     wire [31:0] exu_memAddr;        // 内存访问地址
@@ -114,20 +140,20 @@ module CPU (
     wire [31:0] hilo_rHiData;  // 高位数据输出
 
     Seg7 seg7(
-             .clk(clk),
+             .clk(clk), // 100M Hz
              .data(dataMem_seg7),
              .num_scan_select(num_scan_select),
              .num_seg7(num_seg)
          );
 
     Led led_u(
-        .led_data(dateMem_led_data),
-        .led(led)
-    );
+            .led_data(dateMem_led_data),
+            .led(led)
+        );
 
 
     IFU ifu(
-            .clk(clk),
+            .clk(cpu_clk),
             .rst(rst),
             .jAddr(idu_jAddr),
             .jCe(idu_jCe),
@@ -142,7 +168,7 @@ module CPU (
             );
 
     RegFile regs(
-                .clk(clk),
+                .clk(cpu_clk),
                 .rst(rst),
 
                 .regaData(regs_regaData),
@@ -160,7 +186,7 @@ module CPU (
             );
 
     IDU idu(
-            .clk(clk),
+            .clk(cpu_clk),
             .rst(rst),
             .pc(ifu_pc),
             .inst(instMem_data),
@@ -200,7 +226,7 @@ module CPU (
         );
 
     EXU exu(
-            .clk(clk),
+            .clk(cpu_clk),
             .rst(rst),
             .regcData(exu_regcData),
             .regcAddr(exu_regcAddr),
@@ -245,7 +271,7 @@ module CPU (
             .exu_regAddr(exu_exu_regAddr)
         );
     MEM mem(
-            .clk(clk),
+            .clk(cpu_clk),
             .rst(rst),
             .regcData_i(exu_regcData),
             .regcAddr_i(exu_regcAddr),
@@ -284,7 +310,7 @@ module CPU (
     // output declaration of module DataMem
 
     DataMem data_mem(
-                .clk(clk),
+                .clk(cpu_clk),
                 .ce(mem_memCe),
                 .we(mem_memWr),
                 .wtData(mem_wtData),
@@ -299,7 +325,7 @@ module CPU (
     // output declaration of module WB
 
     WB wb(
-           .clk(clk),
+           .clk(cpu_clk),
            .rst(rst),
            .regWr(mem_regWr),
            .regAddr(mem_regAddr),
@@ -320,7 +346,7 @@ module CPU (
 
     HiLo hilo(
              .rst(rst),
-             .clk(clk),
+             .clk(cpu_clk),
              .wLoData_i(exu_wLoData),
              .wlo_i(exu_wlo),
              .wHiData_i(exu_wHiData),
@@ -331,8 +357,63 @@ module CPU (
          );
 
     IsBreak isbreak(
-                .clk(clk),
+                .clk(cpu_clk),
                 .isBreak(wbu_is_break)
             );
+
+
+    // lcd 模块
+    reg         display_valid;
+    reg  [39:0] display_name;
+    reg  [31:0] display_value;
+    wire [5 :0] display_number;
+    wire        input_valid;
+    wire [31:0] input_value;
+
+    lcd_module lcd_module(
+                   .clk            (clk           ),
+                   .resetn         (resetn        ),
+
+
+                   .display_valid  (display_valid ),
+                   .display_name   (display_name  ),
+                   .display_value  (display_value ),
+                   .display_number (display_number),
+                   .input_valid    (input_valid   ),
+                   .input_value    (input_value   ),
+
+
+                   .lcd_rst        (lcd_rst       ),
+                   .lcd_cs         (lcd_cs        ),
+                   .lcd_rs         (lcd_rs        ),
+                   .lcd_wr         (lcd_wr        ),
+                   .lcd_rd         (lcd_rd        ),
+                   .lcd_data_io    (lcd_data_io   ),
+                   .lcd_bl_ctr     (lcd_bl_ctr    ),
+                   .ct_int         (ct_int        ),
+                   .ct_sda         (ct_sda        ),
+                   .ct_scl         (ct_scl        ),
+                   .ct_rstn        (ct_rstn       )
+               );
+
+    reg choice;
+    initial begin
+        choice = 1'b0;
+    end
+    // 切换显示内容
+    always @(posedge cpu_clk) begin
+        if (choice) begin
+            display_valid <= 1'b1;
+            display_name  <= "   PC";
+            display_value <= exu_pc_debug;
+        end
+        else begin
+            display_valid <= 1'b1;
+            display_name  <= " INST";
+            display_value <= exu_inst_debug;
+        end
+        choice <= ~choice;
+    end
+
 
 endmodule

@@ -26,11 +26,11 @@ void step() {
     main_time++;
 }
 void reset(int n) {
-    top->resetn = 0;
+    top->rst = 1;
     while (n--) {
         step();
     }
-    top->resetn = 0;
+    top->rst = 0;
 }
 
 // 执行一步
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     reset(1);
 
-    int ret = cpu_exec(3000000);
+    int ret = cpu_exec(30000);
 
     return ret;
 }

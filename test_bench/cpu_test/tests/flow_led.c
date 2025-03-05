@@ -11,12 +11,22 @@
 
 #include <stdint.h>  // 包含 uint32_t 的定义
 
+// void one_second() {
+//     int length = 1000000;
+//     while (length) {
+//         length--;
+//     }
+// }
+
 int main() {
-    volatile uint32_t* led_register =
+    volatile uint32_t* seg_register =
         (volatile uint32_t*)(1023 << 2);  // 将地址转换为指针
+    volatile uint32_t* led_register =
+        (volatile uint32_t*)(1022 << 2);  // 将地址转换为指针
 
     while (1) {
-        *led_register = 0x89abcdef;  // 使用指针解引用操作
+        *seg_register = 0xccccffff;  // 使用指针解引用操作
+        *led_register = 0x0000aaaa;  // 间隔发光
     }
 
     return 0;

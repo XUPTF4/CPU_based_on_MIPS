@@ -7,8 +7,9 @@ module DataMem(
     input memRr,                // 内存读使能
     input [3:0] w_mask,         // 写掩码
     input [3:0] r_mask,         // 读掩码
-    output reg [31:0] rdData,    // 组合逻辑直接输出
-    output [31:0] seg7      // 数码管显示输出
+    output reg [31:0] rdData,   // 组合逻辑直接输出
+    output [31:0] seg7,         // 数码管显示输出
+    output [31:0] led_data      // led 显示输出
 );
     reg [31:0] memory [0:1023]; // 4KB 内存
 // 初始化 memory
@@ -18,6 +19,7 @@ module DataMem(
 
     // 组合逻辑读操作：地址变化立即生效
     assign seg7 = memory[1023]; // 直接输出
+    assign led_data = memory[1022]; // 直接输出
     always @(*) begin
         if (ce && memRr) begin
             case (r_mask)

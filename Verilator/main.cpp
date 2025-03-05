@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     reset(5);
 
-    int ret = cpu_exec(200);
+    int ret = cpu_exec(-1);
 
     return ret;
 }

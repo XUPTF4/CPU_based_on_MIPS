@@ -16,7 +16,7 @@ int main() {
         (volatile uint32_t*)(1023 << 2);  // 将地址转换为指针
 
     while (1) {
-        *led_register = 0xffffffff;  // 使用指针解引用操作
+        *led_register = 0x89abcdef;  // 使用指针解引用操作
     }
 
     return 0;

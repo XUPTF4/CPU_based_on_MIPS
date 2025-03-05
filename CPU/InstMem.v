@@ -27,11 +27,11 @@ module InstMem(
         mem[17]  = 32'h00000000;
         mem[18]  = 32'h00000000;
         mem[19]  = 32'h00000000;
-        mem[20]  = 32'h2402ffff;
-        mem[21]  = 32'hac020ffc;
+        mem[20]  = 32'h3c0289ab;
+        mem[21]  = 32'h3442cdef;
         mem[22]  = 32'hac020ffc;
-        mem[23]  = 32'h1000fffd;
-        mem[24]  = 32'h00000000;
+        mem[23]  = 32'hac020ffc;
+        mem[24]  = 32'h1000fffd;
         mem[25]  = 32'h00000000;
         mem[26]  = 32'h00000000;
         mem[27]  = 32'h00000000;

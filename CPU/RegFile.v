@@ -16,10 +16,18 @@ module RegFile (
         // from WBU
         input wire we,                  // 写使能
         input wire [4:0] wAddr,         // 写地址
-        input wire [31:0] wData         // 写数据
+        input wire [31:0] wData,         // 写数据
+        output wire [1023:0] registers_show // 仅限于 debug，输出为很宽，达到了 1024
     );
 
     reg [31:0] registers [31:0];  // 32 个 32 位寄存器
+
+    genvar i;
+    generate
+        for (i = 0; i < 32; i = i + 1) begin : gen_reg_show
+            assign registers_show[i*32 +: 32] = registers[i];
+        end
+    endgenerate
 
     // 读操作
     assign regaData = (regaRd) ? registers[regaAddr] : 32'b0;

@@ -31,7 +31,7 @@ module CPU (
         if (!resetn) begin
             clk_div <= 26'd0;
         end
-        else if(clk_div == 26'h3ffffff) begin
+        else if(clk_div == 26'h2ffffff) begin
             clk_div <= 0;
             cpu_clk <= ~cpu_clk;
         end
@@ -126,6 +126,7 @@ module CPU (
     // RegFile
     wire [31:0] regs_regaData;      // 读端口 A 数据
     wire [31:0] regs_regbData;      // 读端口 B 数据
+    wire [1023:0] regs_registers_show; // 仅限于 debug，输出为很宽，达到了 1024
 
     // InstMem
     wire [31:0] instMem_data;
@@ -182,7 +183,8 @@ module CPU (
                 // WBU
                 .we(wbu_we),
                 .wAddr(wbu_wAddr),
-                .wData(wbu_wData)
+                .wData(wbu_wData),
+                .registers_show(regs_registers_show)
             );
 
     IDU idu(
@@ -396,24 +398,203 @@ module CPU (
                    .ct_rstn        (ct_rstn       )
                );
 
-    reg choice;
-    initial begin
-        choice = 1'b0;
+
+    always @(posedge clk) begin
+
+        case(display_number)
+            6'd1 : //显示PC值
+            begin
+                display_valid <= 1'b1;
+                display_name  <= "   PC";
+                display_value <= exu_pc_debug;
+            end
+            6'd2 : //显示PC取出的指令
+            begin
+                display_valid <= 1'b1;
+                display_name  <= " INST";
+                display_value <= exu_inst_debug;
+            end
+            6'd3 : //显示要观察的内存地址
+            begin
+                display_valid <= 1'b1;
+                display_name  <= " SEG7";
+                display_value <= dataMem_seg7;
+            end
+            6'd4 : //显示该内存地址对应的数据
+            begin
+                display_valid <= 1'b1;
+                display_name  <= " LEDS";
+                display_value <= dateMem_led_data;
+            end
+            6'd5: // 开始寄存区显示
+            begin
+                display_valid <= 1'b1;
+                display_name  <= " ZERO";
+                display_value <= regs_registers_show[0*32 +: 32];
+            end
+            6'd6:begin
+                display_valid <= 1'b1;
+                display_name <= "   AT";
+                display_value <= regs_registers_show[1*32 +: 32];
+            end
+            6'd7:begin
+                display_valid <= 1'b1;
+                display_name <= "   V0";
+                display_value <= regs_registers_show[2*32 +: 32];
+            end
+            6'd8:begin
+                display_valid <= 1'b1;
+                display_name <= "   V1";
+                display_value <= regs_registers_show[3*32 +: 32];
+            end
+            6'd9:begin
+                display_valid <= 1'b1;
+                display_name <= "   A0";
+                display_value <= regs_registers_show[4*32 +: 32];
+            end
+            6'd10:begin
+                display_valid <= 1'b1;
+                display_name <= "   A1";
+                display_value <= regs_registers_show[5*32 +: 32];
+            end
+            6'd11:begin
+                display_valid <= 1'b1;
+                display_name <= "   A2";
+                display_value <= regs_registers_show[6*32 +: 32];
+            end
+            6'd12:begin
+                display_valid <= 1'b1;
+                display_name <= "   A3";
+                display_value <= regs_registers_show[7*32 +: 32];
+            end
+            6'd13:begin
+                display_valid <= 1'b1;
+                display_name <= "   A0";
+                display_value <= regs_registers_show[8*32 +: 32];
+            end
+            6'd14:begin
+                display_valid <= 1'b1;
+                display_name <= "   T1";
+                display_value <= regs_registers_show[9*32 +: 32];
+            end
+            6'd15:begin
+                display_valid <= 1'b1;
+                display_name <= "   T2";
+                display_value <= regs_registers_show[10*32 +: 32];
+            end
+            6'd16:begin
+                display_valid <= 1'b1;
+                display_name <= "   T3";
+                display_value <= regs_registers_show[11*32 +: 32];
+            end
+            6'd17:begin
+                display_valid <= 1'b1;
+                display_name <= "   T4";
+                display_value <= regs_registers_show[12*32 +: 32];
+            end
+            6'd18:begin
+                display_valid <= 1'b1;
+                display_name <= "   T5";
+                display_value <= regs_registers_show[13*32 +: 32];
+            end
+            6'd19:begin
+                display_valid <= 1'b1;
+                display_name <= "   T6";
+                display_value <= regs_registers_show[14*32 +: 32];
+            end
+            6'd20:begin
+                display_valid <= 1'b1;
+                display_name <= "   T7";
+                display_value <= regs_registers_show[15*32 +: 32];
+            end
+            6'd21:begin
+                display_valid <= 1'b1;
+                display_name <= "   S0";
+                display_value <= regs_registers_show[16*32 +: 32];
+            end
+            6'd22:begin
+                display_valid <= 1'b1;
+                display_name <= "   S1";
+                display_value <= regs_registers_show[17*32 +: 32];
+            end
+            6'd23:begin
+                display_valid <= 1'b1;
+                display_name <= "   S2";
+                display_value <= regs_registers_show[18*32 +: 32];
+            end
+            6'd24:begin
+                display_valid <= 1'b1;
+                display_name <= "   S3";
+                display_value <= regs_registers_show[19*32 +: 32];
+            end
+            6'd25:begin
+                display_valid <= 1'b1;
+                display_name <= "   S4";
+                display_value <= regs_registers_show[20*32 +: 32];
+            end
+            6'd26:begin
+                display_valid <= 1'b1;
+                display_name <= "   S5";
+                display_value <= regs_registers_show[21*32 +: 32];
+            end
+            6'd27:begin
+                display_valid <= 1'b1;
+                display_name <= "   S6";
+                display_value <= regs_registers_show[22*32 +: 32];
+            end
+            6'd28:begin
+                display_valid <= 1'b1;
+                display_name <= "   S7";
+                display_value <= regs_registers_show[23*32 +: 32];
+            end
+            6'd29:begin
+                display_valid <= 1'b1;
+                display_name <= "   T8";
+                display_value <= regs_registers_show[24*32 +: 32];
+            end
+            6'd30:begin
+                display_valid <= 1'b1;
+                display_name <= "   T9";
+                display_value <= regs_registers_show[25*32 +: 32];
+            end
+            6'd31:begin
+                display_valid <= 1'b1;
+                display_name <= "   K0";
+                display_value <= regs_registers_show[26*32 +: 32];
+            end
+            6'd32:begin
+                display_valid <= 1'b1;
+                display_name <= "   K1";
+                display_value <= regs_registers_show[27*32 +: 32];
+            end
+            6'd33:begin
+                display_valid <= 1'b1;
+                display_name <= "   GP";
+                display_value <= regs_registers_show[28*32 +: 32];
+            end
+            6'd34:begin
+                display_valid <= 1'b1;
+                display_name <= "   SP";
+                display_value <= regs_registers_show[29*32 +: 32];
+            end
+            6'd35:begin
+                display_valid <= 1'b1;
+                display_name <= "   FP";
+                display_value <= regs_registers_show[30*32 +: 32];
+            end
+            6'd36:begin
+                display_valid <= 1'b1;
+                display_name <= "   RA";
+                display_value <= regs_registers_show[31*32 +: 32];
+            end
+
+
+            default :begin
+                display_valid <= 1'b0;
+            end
+        endcase
     end
-    // 切换显示内容
-    always @(posedge cpu_clk) begin
-        if (choice) begin
-            display_valid <= 1'b1;
-            display_name  <= "   PC";
-            display_value <= exu_pc_debug;
-        end
-        else begin
-            display_valid <= 1'b1;
-            display_name  <= " INST";
-            display_value <= exu_inst_debug;
-        end
-        choice <= ~choice;
-    end
+
 
 
 endmodule

@@ -35,8 +35,6 @@ SECTIONS {
   _sbss = ADDR(.bss);
   _ebss = ADDR(.bss) + SIZEOF(.bss);
 
-  # 堆和栈分配
-  _heap_start = 0x0000600;  # 堆的起始地址
-  _heap_end = 0x00000900;  # 堆的结束地址
+  _k_stack_start = 0x00000500; # 内核栈的起始地址
   _stack_pointer = 0x1000;  # 栈起始地址
 }

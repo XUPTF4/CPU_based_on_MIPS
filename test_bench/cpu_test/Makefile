@@ -31,7 +31,7 @@ LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld --allow-multiple-definition
 # 这里直接使用 mips1 架构 来测试 mult 指令、mulu 指令、div 指令、divu 指令、mflo 指令、mfhi 指令，但是不支持 mtlo、mthi 指令
 # mips2 架构支持 mtlo、mthi 指令，但是目前会让程序执行出错，仔细检查了原因，由于 t9 寄存器为 0，因此会跳转到 0 地址，导致程序执行出错
 C_FLAGS = -O2 -MMD -Wall -Werror  -fno-asynchronous-unwind-tables \
-        -ffreestanding -fno-builtin -fno-stack-protector -Wno-main -nostdlib -nodefaultlibs -fno-delayed-branch \
+        -ffreestanding -fno-builtin -fno-stack-protector -Wno-main -nostdlib -nodefaultlibs  \
 		-fno-inline
 
 AS_FLAGS = -MMD $(INCFLAGS)

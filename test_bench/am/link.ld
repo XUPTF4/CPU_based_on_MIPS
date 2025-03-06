@@ -36,5 +36,6 @@ SECTIONS {
   _ebss = ADDR(.bss) + SIZEOF(.bss);
 
   _k_stack_start = 0x00000500; # 内核栈的起始地址
+  _k_stack_end = 0x00000800; # 内核栈的起始地址
   _stack_pointer = 0x1000;  # 栈起始地址
 }

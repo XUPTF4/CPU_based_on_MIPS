@@ -25,7 +25,6 @@ int main() {
             *led_register = 0x55555555;
             tag = 0;
         }
-
         else{
             *led_register = 0xaaaaaaaa;
             tag = 1;

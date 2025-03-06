@@ -1,4 +1,8 @@
-#include "trap.h"
+#include "/home/luyoung/CPU_based_on_MIPS/test_bench/cpu_test/include/trap.h"
+
+
+void yield();
+Context* kcontext(Area kstack, void (*entry)(void*), void* arg);
 
 // 这里会设计一个简单的OS
 
@@ -15,40 +19,27 @@
 // A 和 B 的功能都是给已经实现的 “UART”上发送一个字符，A进程 发送 `A`，B进程
 // 发送 `B` 预期的观察效果是，在数码管上可以看到 'A' 和 'B' 交替输出
 
-typedef struct {
-    uint32_t regs[32];  // 寄存器组
-    uint32_t epc;       // 异常返回地址
-    uint32_t status;    // 状态寄存器
-} TCB;
 
+// 打印函数
+void print(unsigned int char_x4) {
+    volatile unsigned int* seg_register = (volatile unsigned int*)(1023 << 2);
+    *seg_register = char_x4;
+}
 
-//
-
-    typedef union {
-    uint32_t stack[64];
-    struct {
-        Context* cp;
-    };
-} PCB;
-static PCB pcb[2], pcb_boot, *current = &pcb_boot;
-
+// 程序
 static void f(void* arg) {
     while (1) {
-        putch("?AB"[(uintptr_t)arg > 2 ? 0 : (uintptr_t)arg]);
-        for (int volatile i = 0; i < 100000; i++)
-            ;
+        if ((unsigned int)(*arg) == 1) {
+            print(0xaaaaaaaa);  // A 进程打印 A
+
+        } else {
+            print(0xbbbbbbbb);  // B 进程打印 B
+        }
         yield();
     }
 }
 
-static Context* schedule(Context* prev) {
-    current->cp = prev;
-    current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
-    return current->cp;
-}
-
 int main() {
-    cte_init(schedule);
     pcb[0].cp = kcontext((Area){pcb[0].stack, &pcb[0] + 1}, f, (void*)1L);
     pcb[1].cp = kcontext((Area){pcb[1].stack, &pcb[1] + 1}, f, (void*)2L);
     yield();

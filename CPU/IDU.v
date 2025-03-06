@@ -47,7 +47,16 @@ module IDU (
         // 从 WBU 窃取
         input wire wbu_regWr,
         input wire [31:0] wbu_data,
-        input wire [4:0] wbu_regAddr
+        input wire [4:0] wbu_regAddr,
+
+        // 异常处理
+        output reg EXLSet,
+        output wire EXLClear,
+        output reg [31:0] CP0_PC, // EXU 传给 CP0 的 PC
+
+        // 和 CP0 连接
+        input [31:0] CP0_EPC,
+        input [31:0] CP0_handler_PC
     );
 
     // 寄存器组
@@ -77,7 +86,6 @@ module IDU (
     // debug 信号
     assign inst_debug = idu_inst;
     assign pc_debug = idu_pc;
-
 
     // 提取指令字段
     wire [31:0] pc_plus_4;
@@ -178,10 +186,7 @@ module IDU (
 
     reg is_ll, is_sc, is_mfc0, is_mtc0, is_eret, is_syscall;
 
-    reg is_lb, is_sb;
-
     // 首先得识别是什么指令（参考给出了 38 条指令），然后根据指令解析出所需信号
-
     always @(*) begin
         // LOAD 地址
         rt_data_o = conflict_regbData; // rt 中的数据需要传到 mem，对于 Store
@@ -239,8 +244,6 @@ module IDU (
         is_mtc0 = 1'b0;
         is_eret = 1'b0;
 
-        is_lb = 1'b0;
-        is_sb = 1'b0;
 
 
 
@@ -396,21 +399,12 @@ module IDU (
                 is_ll = 1'b1;
             32'b111000_?????_?????_?????_?????_??????:
                 is_sc = 1'b1;
-            32'b010000_00000_?????_?????_?????_??????:
+            32'b010000_00000_?????_?????_00000000_???:
                 is_mfc0 = 1'b1;
-            32'b010000_?????_00000_?????_?????_??????:
+            32'b010000_00100_?????_?????_00000000_???:
                 is_mtc0 = 1'b1;
-            32'b010000_00000_00000_00000_00000_011000:
+            32'b010000_10000_00000_00000_00000_011000:
                 is_eret = 1'b1;
-
-            32'b100000_?????_?????_?????_?????_??????:
-                is_lb = 1'b1;
-
-            32'b101000_?????_?????_?????_?????_??????:
-                is_sb = 1'b1;
-
-
-
             default: begin
                 is_unknown = 1'b1; // 未实现的指令
 
@@ -766,6 +760,17 @@ module IDU (
                     r_mask = `RMASK_X;
                 end
 
+                is_eret: begin
+                    op = `ALU_ERET;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_X;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X;
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
+                end
+
                 is_break: begin
                     op = `ALU_BREAK;
                     OP1_SEL = `OP1_X; // 技巧，将 RS 作为 break 的信号
@@ -883,6 +888,19 @@ module IDU (
                     w_mask = `WMASK_X;
                     r_mask = `RMASK_X;
                 end
+
+                is_mtc0: begin
+                    op = `ALU_MTC0;
+                    OP1_SEL = `OP1_X;
+                    OP2_SEL = `OP2_RT;
+                    memWr = `WMEN_X;
+                    memRr = `RMEN_X;
+                    regcWr = `REN_X; // 这种写不算写
+                    w_mask = `WMASK_X;
+                    r_mask = `RMASK_X;
+                end
+
+
                 is_unknown: begin
                     op = `ALU_UNKNOWN;
                     OP1_SEL = `OP1_X;
@@ -908,8 +926,31 @@ module IDU (
         end
     end
 
-    // 根据解析到的信号，生成第一操作数，第二操作数
+    // 异常处理
+    // 如果是 mtc0，直接将 OP1_RT的值放到 CP0 中
+    always @(*) begin
+        case (op)
+            `ALU_MTC0: begin
+                EXLSet = 1'b1;
+                CP0_PC = conflict_regbData;
+            end
+            `ALU_SYSCALL: begin
+                EXLSet = 1'b0;
+                CP0_PC = pc_debug;
+            end
+            `ALU_ERET: begin
+                EXLSet = 1'b0;
+                CP0_PC = 32'd0;
+            end
+            default: begin
+                EXLSet = 1'b0;
+                CP0_PC = 32'd0;
+            end
+        endcase
+    end
+    assign EXLClear = is_eret;  // 发射到 CP0
 
+    // 根据解析到的信号，生成第一操作数，第二操作数
     always @(*) begin
         case (OP1_SEL)
             `OP1_RS:
@@ -972,6 +1013,10 @@ module IDU (
                 jCe = 1'b1;
             `ALU_JR:
                 jCe = 1'b1;
+            `ALU_SYSCALL:
+                jCe = 1'b1;
+            `ALU_ERET:
+                jCe = 1'b1;
             default:
                 jCe = 1'b0;
         endcase
@@ -1009,6 +1054,10 @@ module IDU (
                     jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
                 `ALU_BLTZ:
                     jAddr = pc_plus_4 + { {14{offset[15]}}, offset, 2'b00 }; // 左移两位，再符号扩展 + 延迟槽
+                `ALU_SYSCALL:
+                    jAddr = CP0_handler_PC; // 返回异常处理地址
+                `ALU_ERET:
+                    jAddr = CP0_EPC; // 返回中断返回地址
                 default:
                     jAddr = 32'b0;
             endcase

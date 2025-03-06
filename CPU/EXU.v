@@ -51,6 +51,7 @@ module EXU (
         output wire [4:0] exu_regAddr
 
     );
+
     // 寄存器组
     reg [5:0] reg_op_i_idu;
     reg [0:0] reg_memWr_i_idu;
@@ -134,7 +135,6 @@ module EXU (
     assign inst_debug = exu_inst_debug;
     assign pc_debug = exu_pc_debug;
 
-
     reg [31:0] alu_out;
 
     // WB
@@ -195,6 +195,7 @@ module EXU (
             endcase
         end
     end
+
 
     // HiLo
     wire signed [63:

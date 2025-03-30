@@ -1,7 +1,7 @@
 #include <trap.h>
 #include <stdint.h>
 
-extern void __am_asm_trap(void);
+
 
 typedef struct area {
     void *start, *end;

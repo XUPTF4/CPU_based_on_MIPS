@@ -1,4 +1,3 @@
-
 #define MAP(c, f) c(f)
 
 #define REGS(f) \

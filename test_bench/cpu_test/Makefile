@@ -31,7 +31,7 @@ LD_FALGS = -T $(CPU_HOME)/test_bench/am/link.ld --allow-multiple-definition
 # mul：MIPS32新增指令，直接产生32位结果（不涉及HI/LO）
 # 这里直接使用 mips1 架构 来测试 mult 指令、mulu 指令、div 指令、divu 指令、mflo 指令、mfhi 指令，但是不支持 mtlo、mthi 指令
 # mips2 架构支持 mtlo、mthi 指令，但是目前会让程序执行出错，仔细检查了原因，由于 t9 寄存器为 0，因此会跳转到 0 地址，导致程序执行出错
-C_FLAGS = -O2 -MMD -Wall -march=mips1 -mfp32 -Werror -fno-asynchronous-unwind-tables \
+C_FLAGS = -O0 -MMD -Wall -march=mips1 -mfp32 -Werror -fno-asynchronous-unwind-tables \
         -ffreestanding -fno-builtin -fno-stack-protector -Wno-main -nostdlib -nodefaultlibs -fno-delayed-branch \
 		-fno-inline
 
@@ -64,7 +64,7 @@ $(BUILD_DIR)/$(ALL).o: $(C_FILE) $(ASM_SRC1)
 	@$(MIPS_GCC) $(AS_FLAGS) -c $(ASM_SRC2) -o $(BUILD_DIR)/trap.S.o
 
 # 链接所有目标文件（.c 和 .S 文件）生成一个单独的目标文件 (.o)
-	@$(MIPS_LD) $(LD_FALGS) $(BUILD_DIR)/$(ALL).c.o $(BUILD_DIR)/*.o -o $(BUILD_DIR)/$(ALL).o
+	@$(MIPS_LD) $(LD_FALGS)  $(BUILD_DIR)/trap.S.o $(BUILD_DIR)/start.S.o $(BUILD_DIR)/trm.c.o $(BUILD_DIR)/$(ALL).c.o  -o $(BUILD_DIR)/$(ALL).o
 
 # 使用 objcopy 提取 .text 段并生成二进制文件
 	@$(OBJCOPY) -O binary -j .text $(BUILD_DIR)/$(ALL).o $(BUILD_DIR)/$(ALL).bin

@@ -17,7 +17,7 @@ module CP0(
     initial begin
         exl = 0;
         reg_EPC = 32'h0;
-        exception_handler_addr = 32'h1a0; // 这个值可以观察反汇编代码
+        exception_handler_addr = 32'h20; // 这个值可以观察反汇编代码: __am_asm_trap 的地址
     end
 
     assign handler_PC = exception_handler_addr;

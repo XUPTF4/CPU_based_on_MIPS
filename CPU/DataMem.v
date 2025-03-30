@@ -15,7 +15,7 @@ module DataMem(
 // 初始化 memory
 
     initial begin
-        memory[0]  = 32'h00000138;
+        memory[0]  = 32'h00000034;
     end
 
     // 组合逻辑读操作：地址变化立即生效
